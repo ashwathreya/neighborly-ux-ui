@@ -1,12 +1,12 @@
 'use client';
 
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { SearchForm } from './components/SearchForm';
 import { EnhancedSearchForm } from './components/EnhancedSearchForm';
 import { LoginModal } from './components/LoginModal';
 import { ProviderDetailsModal } from './components/ProviderDetailsModal';
-import { useState, useEffect, useRef } from 'react';
 
 export default function HomePage() {
 	const router = useRouter();
@@ -369,36 +369,36 @@ export default function HomePage() {
 				>
 					<Link
 						href="/"
-						style={{
-							fontSize: '26px',
-							fontWeight: 800,
-							background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
-							backgroundSize: '200% 200%',
-							WebkitBackgroundClip: 'text',
-							WebkitTextFillColor: 'transparent',
-							backgroundClip: 'text',
-							textDecoration: 'none',
-							display: 'flex',
-							alignItems: 'center',
-							gap: '8px',
-							animation: 'gradientShift 5s ease infinite',
-							transition: 'transform 0.3s',
-							cursor: 'pointer'
-						}}
+					style={{
+						fontSize: '26px',
+						fontWeight: 800,
+						background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+						backgroundSize: '200% 200%',
+						WebkitBackgroundClip: 'text',
+						WebkitTextFillColor: 'transparent',
+						backgroundClip: 'text',
+						textDecoration: 'none',
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						animation: 'gradientShift 5s ease infinite',
+						transition: 'transform 0.3s',
+						cursor: 'pointer'
+					} as React.CSSProperties}
 						onMouseEnter={(e) => {
 							e.currentTarget.style.transform = 'scale(1.05)';
 							// Preserve gradient text on hover
 							e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)';
-							e.currentTarget.style.WebkitBackgroundClip = 'text';
-							e.currentTarget.style.WebkitTextFillColor = 'transparent';
+							e.currentTarget.style.webkitBackgroundClip = 'text';
+							e.currentTarget.style.webkitTextFillColor = 'transparent';
 							e.currentTarget.style.backgroundClip = 'text';
 						}}
 						onMouseLeave={(e) => {
 							e.currentTarget.style.transform = 'scale(1)';
 							// Preserve gradient text on leave
 							e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)';
-							e.currentTarget.style.WebkitBackgroundClip = 'text';
-							e.currentTarget.style.WebkitTextFillColor = 'transparent';
+							e.currentTarget.style.webkitBackgroundClip = 'text';
+							e.currentTarget.style.webkitTextFillColor = 'transparent';
 							e.currentTarget.style.backgroundClip = 'text';
 						}}
 					>
@@ -409,7 +409,7 @@ export default function HomePage() {
 							WebkitBackgroundClip: 'initial',
 							WebkitTextFillColor: 'initial',
 							backgroundClip: 'initial'
-						}}>
+						} as React.CSSProperties}>
 							🏘️
 						</span>
 						<span style={{
@@ -419,7 +419,7 @@ export default function HomePage() {
 							WebkitTextFillColor: 'transparent',
 							backgroundClip: 'text',
 							animation: 'gradientShift 5s ease infinite'
-						}}>Neighborly</span>
+						} as React.CSSProperties}>Neighborly</span>
 					</Link>
 					<div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
 						{!user && (
@@ -901,7 +901,7 @@ export default function HomePage() {
 														WebkitTextFillColor: 'transparent',
 														marginBottom: '8px',
 														lineHeight: '1'
-													}}
+													} as React.CSSProperties}
 												>
 													{stat.number}
 												</div>
@@ -2113,7 +2113,7 @@ export default function HomePage() {
 													WebkitTextFillColor: 'transparent',
 													marginBottom: '12px',
 													lineHeight: '1'
-												}}
+												} as React.CSSProperties}
 											>
 												{stat.number}
 											</div>
@@ -3601,7 +3601,7 @@ export default function HomePage() {
 							WebkitTextFillColor: 'transparent',
 							backgroundClip: 'text',
 							animation: 'gradientShift 5s ease infinite'
-						}}>
+						} as React.CSSProperties}>
 							Neighborly
 						</span>
 					</div>

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 
@@ -62,36 +62,36 @@ export default function DashboardPage() {
 				<div style={{ maxWidth: '1400px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
 					<Link
 						href="/"
-						style={{
-							fontSize: '24px',
-							fontWeight: 800,
-							background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
-							backgroundSize: '200% 200%',
-							WebkitBackgroundClip: 'text',
-							WebkitTextFillColor: 'transparent',
-							backgroundClip: 'text',
-							textDecoration: 'none',
-							display: 'flex',
-							alignItems: 'center',
-							gap: '8px',
-							animation: 'gradientShift 5s ease infinite',
-							transition: 'transform 0.3s',
-							cursor: 'pointer'
-						}}
+					style={{
+						fontSize: '24px',
+						fontWeight: 800,
+						background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
+						backgroundSize: '200% 200%',
+						WebkitBackgroundClip: 'text',
+						WebkitTextFillColor: 'transparent',
+						backgroundClip: 'text',
+						textDecoration: 'none',
+						display: 'flex',
+						alignItems: 'center',
+						gap: '8px',
+						animation: 'gradientShift 5s ease infinite',
+						transition: 'transform 0.3s',
+						cursor: 'pointer'
+					} as React.CSSProperties}
 						onMouseEnter={(e) => {
 							e.currentTarget.style.transform = 'scale(1.05)';
 							// Preserve gradient text on hover
 							e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)';
-							e.currentTarget.style.WebkitBackgroundClip = 'text';
-							e.currentTarget.style.WebkitTextFillColor = 'transparent';
+							e.currentTarget.style.webkitBackgroundClip = 'text';
+							e.currentTarget.style.webkitTextFillColor = 'transparent';
 							e.currentTarget.style.backgroundClip = 'text';
 						}}
 						onMouseLeave={(e) => {
 							e.currentTarget.style.transform = 'scale(1)';
 							// Preserve gradient text on leave
 							e.currentTarget.style.background = 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)';
-							e.currentTarget.style.WebkitBackgroundClip = 'text';
-							e.currentTarget.style.WebkitTextFillColor = 'transparent';
+							e.currentTarget.style.webkitBackgroundClip = 'text';
+							e.currentTarget.style.webkitTextFillColor = 'transparent';
 							e.currentTarget.style.backgroundClip = 'text';
 						}}
 					>
@@ -101,7 +101,7 @@ export default function DashboardPage() {
 							WebkitBackgroundClip: 'initial',
 							WebkitTextFillColor: 'initial',
 							backgroundClip: 'initial'
-						}}>🏘️</span>
+						} as React.CSSProperties}>🏘️</span>
 						<span style={{
 							background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #ec4899 100%)',
 							backgroundSize: '200% 200%',
@@ -109,7 +109,7 @@ export default function DashboardPage() {
 							WebkitTextFillColor: 'transparent',
 							backgroundClip: 'text',
 							animation: 'gradientShift 5s ease infinite'
-						}}>Neighborly</span>
+						} as React.CSSProperties}>Neighborly</span>
 					</Link>
 					<Link
 						href="/"

@@ -43,7 +43,8 @@ export default function ProfilePage() {
 
 		try {
 			// In a real app, this would update via API
-			const updatedUser = { ...user, name, email, phone, address, bio };
+			if (!user) return;
+			const updatedUser = { ...user, name, email, phone, address, bio, role: user.role };
 			localStorage.setItem('user', JSON.stringify(updatedUser));
 			setUser(updatedUser);
 			setStatus('✅ Profile updated successfully!');
