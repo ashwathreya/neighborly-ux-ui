@@ -57,6 +57,8 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	const [isServiceSearch, setIsServiceSearch] = useState(false);
 	const [selectedProvider, setSelectedProvider] = useState<SearchResult | null>(null);
 	const [isModalOpen, setIsModalOpen] = useState(false);
+	const [hoveredProvider, setHoveredProvider] = useState<SearchResult | null>(null);
+	const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
 	
 	const [searchQuery, setSearchQuery] = useState({
 		serviceType: String(searchParams.serviceType || searchParams.petType || 'all'),
@@ -1479,6 +1481,32 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 														setSelectedProvider(result);
 														setIsModalOpen(true);
 													}}
+													onMouseEnter={(e) => {
+														setHoveredProvider(result);
+														// Calculate tooltip position relative to map container
+														const mapContainer = e.currentTarget.closest('[style*="position: relative"]') as HTMLElement;
+														if (mapContainer) {
+															const rect = mapContainer.getBoundingClientRect();
+															// Convert SVG coordinates to screen coordinates
+															const svg = e.currentTarget.ownerSVGElement;
+															if (svg) {
+																const svgRect = svg.getBoundingClientRect();
+																const svgViewBox = svg.viewBox.baseVal;
+																// Calculate position as percentage of SVG viewBox
+																const xPercent = providerX / svgViewBox.width;
+																const yPercent = providerY / svgViewBox.height;
+																// Convert to pixel position in the container
+																setTooltipPosition({
+																	x: xPercent * svgRect.width,
+																	y: yPercent * svgRect.height - 10
+																});
+															}
+														}
+													}}
+													onMouseLeave={() => {
+														setHoveredProvider(null);
+														setTooltipPosition(null);
+													}}
 													style={{ cursor: 'pointer' }}
 												>
 													{/* Invisible larger hit area for easier clicking */}
@@ -1549,6 +1577,141 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										</text>
 									</g>
 								</svg>
+								
+								{/* Tooltip for hovered provider */}
+								{hoveredProvider && tooltipPosition && (
+									<div
+										style={{
+											position: 'absolute',
+											left: `${tooltipPosition.x}px`,
+											top: `${tooltipPosition.y}px`,
+											transform: 'translate(-50%, -100%)',
+											background: 'white',
+											borderRadius: '12px',
+											padding: '12px',
+											boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+											border: `2px solid ${hoveredProvider.platformColor}`,
+											minWidth: '220px',
+											maxWidth: '280px',
+											zIndex: 1000,
+											pointerEvents: 'auto'
+										}}
+										onMouseEnter={() => {
+											// Keep tooltip visible when hovering over it
+										}}
+										onMouseLeave={() => {
+											setHoveredProvider(null);
+											setTooltipPosition(null);
+										}}
+									>
+										{/* Provider Header */}
+										<div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '8px' }}>
+											<div
+												style={{
+													width: '40px',
+													height: '40px',
+													borderRadius: '50%',
+													background: `linear-gradient(135deg, ${hoveredProvider.platformColor}15, ${hoveredProvider.platformColor}30)`,
+													display: 'flex',
+													alignItems: 'center',
+													justifyContent: 'center',
+													fontSize: '20px',
+													fontWeight: 700,
+													border: `2px solid ${hoveredProvider.platformColor}`
+												}}
+											>
+												{hoveredProvider.name.charAt(0)}
+											</div>
+											<div style={{ flex: 1 }}>
+												<div style={{ fontSize: '15px', fontWeight: 700, color: '#111827', marginBottom: '2px' }}>
+													{hoveredProvider.name}
+												</div>
+												<div style={{ fontSize: '12px', color: '#6b7280', display: 'flex', alignItems: 'center', gap: '6px' }}>
+													<span>{hoveredProvider.platformIcon}</span>
+													<span>{hoveredProvider.platformName}</span>
+												</div>
+											</div>
+										</div>
+										
+										{/* Rating and Price */}
+										<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', paddingBottom: '8px', borderBottom: '1px solid #e5e7eb' }}>
+											<div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+												<span style={{ fontSize: '16px' }}>⭐</span>
+												<span style={{ fontSize: '14px', fontWeight: 600, color: '#111827' }}>{hoveredProvider.rating}</span>
+												<span style={{ fontSize: '12px', color: '#6b7280' }}>({hoveredProvider.reviews})</span>
+											</div>
+											<div style={{ fontSize: '14px', fontWeight: 700, color: hoveredProvider.platformColor }}>
+												${hoveredProvider.price}/{hoveredProvider.priceUnit}
+											</div>
+										</div>
+										
+										{/* Location and Distance */}
+										<div style={{ fontSize: '12px', color: '#6b7280', marginBottom: '8px' }}>
+											📍 {hoveredProvider.location}
+											{hoveredProvider.distance !== undefined && (
+												<span> • {hoveredProvider.distance} mi away</span>
+											)}
+										</div>
+										
+										{/* Specialties (first 2) */}
+										{hoveredProvider.specialties && hoveredProvider.specialties.length > 0 && (
+											<div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginBottom: '10px' }}>
+												{hoveredProvider.specialties.slice(0, 2).map((spec, idx) => (
+													<span
+														key={idx}
+														style={{
+															padding: '2px 8px',
+															background: `${hoveredProvider.platformColor}15`,
+															color: hoveredProvider.platformColor,
+															borderRadius: '6px',
+															fontSize: '11px',
+															fontWeight: 600
+														}}
+													>
+														{spec}
+													</span>
+												))}
+												{hoveredProvider.specialties.length > 2 && (
+													<span style={{ fontSize: '11px', color: '#9ca3af' }}>
+														+{hoveredProvider.specialties.length - 2} more
+													</span>
+												)}
+											</div>
+										)}
+										
+										{/* More Info Button */}
+										<button
+											onClick={() => {
+												setSelectedProvider(hoveredProvider);
+												setIsModalOpen(true);
+												setHoveredProvider(null);
+												setTooltipPosition(null);
+											}}
+											style={{
+												width: '100%',
+												padding: '8px 12px',
+												background: `linear-gradient(135deg, ${hoveredProvider.platformColor}, ${hoveredProvider.platformColor}dd)`,
+												color: 'white',
+												border: 'none',
+												borderRadius: '8px',
+												fontSize: '13px',
+												fontWeight: 600,
+												cursor: 'pointer',
+												transition: 'all 0.2s'
+											}}
+											onMouseEnter={(e) => {
+												e.currentTarget.style.transform = 'translateY(-1px)';
+												e.currentTarget.style.boxShadow = `0 4px 12px ${hoveredProvider.platformColor}50`;
+											}}
+											onMouseLeave={(e) => {
+												e.currentTarget.style.transform = 'translateY(0)';
+												e.currentTarget.style.boxShadow = 'none';
+											}}
+										>
+											More Info →
+										</button>
+									</div>
+								)}
 								
 								{/* Legend */}
 								<div
