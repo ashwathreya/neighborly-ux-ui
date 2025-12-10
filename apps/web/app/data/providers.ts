@@ -59,16 +59,51 @@ const locations = [
 ];
 
 const platforms = [
+	// Pet Care Platforms
 	{ name: 'rover', displayName: 'Rover', icon: '🐕', color: '#00B9B4' },
-	{ name: 'taskrabbit', displayName: 'TaskRabbit', icon: '🐰', color: '#00C853' },
-	{ name: 'wyzant', displayName: 'Wyzant', icon: '📚', color: '#8b5cf6' },
-	{ name: 'care', displayName: 'Care.com', icon: '💙', color: '#4A90E2' },
-	{ name: 'thumbtack', displayName: 'Thumbtack', icon: '👍', color: '#009688' },
 	{ name: 'wag', displayName: 'Wag!', icon: '🐾', color: '#FF6B6B' },
-	{ name: 'handy', displayName: 'Handy', icon: '🔧', color: '#FF5722' },
+	{ name: 'care', displayName: 'Care.com', icon: '💙', color: '#4A90E2' },
 	{ name: 'sittercity', displayName: 'Sittercity', icon: '🏠', color: '#8B5CF6' },
 	{ name: 'petbacker', displayName: 'PetBacker', icon: '🐶', color: '#FF9800' },
-	{ name: 'varsitytutors', displayName: 'Varsity Tutors', icon: '🎓', color: '#2196F3' }
+	{ name: 'holidog', displayName: 'Holidog', icon: '🐱', color: '#9C27B0' },
+	{ name: 'trustedhousesitters', displayName: 'TrustedHousesitters', icon: '🏡', color: '#4CAF50' },
+	
+	// Handyman/Home Services Platforms
+	{ name: 'thumbtack', displayName: 'Thumbtack', icon: '👍', color: '#009688' },
+	{ name: 'taskrabbit', displayName: 'TaskRabbit', icon: '🐰', color: '#00C853' },
+	{ name: 'handy', displayName: 'Handy', icon: '🔧', color: '#FF5722' },
+	{ name: 'angi', displayName: 'Angi', icon: '🏗️', color: '#E91E63' },
+	{ name: 'homeadvisor', displayName: 'HomeAdvisor', icon: '🛠️', color: '#FF6F00' },
+	{ name: 'porch', displayName: 'Porch', icon: '🚪', color: '#00BCD4' },
+	{ name: 'takl', displayName: 'Takl', icon: '⚡', color: '#03A9F4' },
+	
+	// Tutoring Platforms
+	{ name: 'wyzant', displayName: 'Wyzant', icon: '📚', color: '#8b5cf6' },
+	{ name: 'tutorcom', displayName: 'Tutor.com', icon: '🎓', color: '#2196F3' },
+	{ name: 'preply', displayName: 'Preply', icon: '🌍', color: '#4CAF50' },
+	{ name: 'varsitytutors', displayName: 'Varsity Tutors', icon: '⭐', color: '#FF9800' },
+	{ name: 'skooli', displayName: 'Skooli', icon: '✏️', color: '#9C27B0' },
+	{ name: 'tutorme', displayName: 'TutorMe', icon: '💡', color: '#00BCD4' },
+	{ name: 'chegg', displayName: 'Chegg Tutors', icon: '📖', color: '#FF5722' },
+	{ name: 'superprof', displayName: 'Superprof', icon: '🎓', color: '#FF6B6B' },
+	{ name: 'italki', displayName: 'iTalki', icon: '💬', color: '#FF9800' },
+	{ name: 'khanacademy', displayName: 'Khan Academy', icon: '🎯', color: '#4CAF50' },
+	{ name: 'brighterly', displayName: 'Brighterly', icon: '✨', color: '#FF9800' },
+	{ name: 'booknook', displayName: 'BookNook', icon: '📚', color: '#2196F3' },
+	{ name: 'princetonreview', displayName: 'Princeton Review', icon: '🎓', color: '#E91E63' },
+	{ name: 'kaplan', displayName: 'Kaplan', icon: '🎁', color: '#2196F3' },
+	{ name: 'sylvan', displayName: 'Sylvan Learning', icon: '☀️', color: '#FF9800' },
+	{ name: 'huntington', displayName: 'Huntington Learning', icon: '🔬', color: '#4CAF50' },
+	{ name: 'revolutionprep', displayName: 'Revolution Prep', icon: '🚀', color: '#9C27B0' },
+	{ name: 'etutorworld', displayName: 'eTutorWorld', icon: '🌐', color: '#2196F3' },
+	
+	// Moving Services
+	{ name: 'uhaul', displayName: 'U-Haul Helpers', icon: '🚚', color: '#FF9800' },
+	{ name: 'dolly', displayName: 'Dolly', icon: '📦', color: '#2196F3' },
+	
+	// Cleaning Services
+	{ name: 'merrymaids', displayName: 'Merry Maids', icon: '🧹', color: '#4CAF50' },
+	{ name: 'mollymaid', displayName: 'Molly Maid', icon: '⭐', color: '#FF9800' }
 ];
 
 const petCareSpecialties = [
@@ -136,12 +171,15 @@ function generateProviders(): Provider[] {
 	const providers: Provider[] = [];
 	let idCounter = 1;
 
-	// Generate 25 pet care providers (Rover, Wag, PetBacker, Sittercity)
-	for (let i = 0; i < 25; i++) {
+	// Pet care platforms
+	const petCarePlatforms = ['rover', 'wag', 'petbacker', 'sittercity', 'holidog', 'trustedhousesitters', 'care'];
+	
+	// Generate 30 pet care providers across all pet platforms
+	for (let i = 0; i < 30; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
-		const platform = ['rover', 'wag', 'petbacker', 'sittercity'][i % 4];
+		const platform = petCarePlatforms[i % petCarePlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
 		
 		providers.push({
@@ -164,12 +202,15 @@ function generateProviders(): Provider[] {
 		});
 	}
 
-	// Generate 20 handyman providers (TaskRabbit, Thumbtack, Handy)
-	for (let i = 0; i < 20; i++) {
+	// Handyman platforms
+	const handymanPlatforms = ['taskrabbit', 'thumbtack', 'handy', 'angi', 'homeadvisor', 'porch', 'takl', 'care'];
+	
+	// Generate 25 handyman providers across all handyman platforms
+	for (let i = 0; i < 25; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
-		const platform = ['taskrabbit', 'thumbtack', 'handy'][i % 3];
+		const platform = handymanPlatforms[i % handymanPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
 		
 		providers.push({
@@ -192,12 +233,19 @@ function generateProviders(): Provider[] {
 		});
 	}
 
-	// Generate 15 tutoring providers (Wyzant, Varsity Tutors, Care.com)
-	for (let i = 0; i < 15; i++) {
+	// Tutoring platforms
+	const tutoringPlatforms = [
+		'wyzant', 'tutorcom', 'preply', 'varsitytutors', 'skooli', 'tutorme', 'chegg', 
+		'superprof', 'italki', 'khanacademy', 'brighterly', 'booknook', 'princetonreview',
+		'kaplan', 'sylvan', 'huntington', 'revolutionprep', 'etutorworld'
+	];
+	
+	// Generate 20 tutoring providers across all tutoring platforms
+	for (let i = 0; i < 20; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
-		const platform = ['wyzant', 'varsitytutors', 'care'][i % 3];
+		const platform = tutoringPlatforms[i % tutoringPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
 		
 		providers.push({
@@ -220,12 +268,15 @@ function generateProviders(): Provider[] {
 		});
 	}
 
-	// Generate 12 cleaning providers (Care.com, Handy, Thumbtack)
-	for (let i = 0; i < 12; i++) {
+	// Cleaning platforms
+	const cleaningPlatforms = ['care', 'handy', 'thumbtack', 'merrymaids', 'mollymaid', 'taskrabbit'];
+	
+	// Generate 15 cleaning providers across all cleaning platforms
+	for (let i = 0; i < 15; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
-		const platform = ['care', 'handy', 'thumbtack'][i % 3];
+		const platform = cleaningPlatforms[i % cleaningPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
 		
 		providers.push({
@@ -248,30 +299,63 @@ function generateProviders(): Provider[] {
 		});
 	}
 
-	// Generate 10 other service providers (moving, childcare, etc.)
-	for (let i = 0; i < 10; i++) {
+	// Moving platforms
+	const movingPlatforms = ['taskrabbit', 'thumbtack', 'uhaul', 'dolly', 'care'];
+	
+	// Generate 8 moving service providers
+	for (let i = 0; i < 8; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
-		const platform = platforms[Math.floor(Math.random() * platforms.length)];
+		const platform = movingPlatforms[i % movingPlatforms.length];
+		const platformData = platforms.find(p => p.name === platform)!;
 		
 		providers.push({
 			id: String(idCounter++),
 			name,
-			platform: platform.name,
-			platformName: platform.displayName,
-			platformIcon: platform.icon,
-			platformColor: platform.color,
+			platform: platformData.name,
+			platformName: platformData.displayName,
+			platformIcon: platformData.icon,
+			platformColor: platformData.color,
 			rating: randomRating(4.2, 5.0),
 			reviews: randomReviews(12, 220),
-			price: randomPrice(30, 75),
-			priceUnit: Math.random() > 0.3 ? 'hour' : 'day',
+			price: randomPrice(50, 150),
+			priceUnit: Math.random() > 0.5 ? 'hour' : 'job',
 			location: locations[Math.floor(Math.random() * locations.length)],
-			specialties: otherSpecialties[i % otherSpecialties.length],
+			specialties: ['Moving', 'Heavy lifting', 'Packing', 'Relocation'],
 			verified: Math.random() > 0.3,
 			responseTime: ['usually within 1 hour', 'usually within 2 hours', 'usually within 3 hours'][Math.floor(Math.random() * 3)],
-			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 400}`,
-			bio: `Professional service provider specializing in ${otherSpecialties[i % otherSpecialties.length][0]}. Quality service you can trust.`
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 500}`,
+			bio: `Professional mover specializing in moving and heavy lifting. Reliable and experienced.`
+		});
+	}
+
+	// Generate 4 childcare providers (on Care.com, Sittercity, Thumbtack)
+	const childcarePlatforms = ['care', 'sittercity', 'thumbtack'];
+	for (let i = 0; i < 4; i++) {
+		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+		const name = `${firstName} ${lastName.charAt(0)}.`;
+		const platform = childcarePlatforms[i % childcarePlatforms.length];
+		const platformData = platforms.find(p => p.name === platform)!;
+		
+		providers.push({
+			id: String(idCounter++),
+			name,
+			platform: platformData.name,
+			platformName: platformData.displayName,
+			platformIcon: platformData.icon,
+			platformColor: platformData.color,
+			rating: randomRating(4.3, 5.0),
+			reviews: randomReviews(15, 200),
+			price: randomPrice(20, 40),
+			priceUnit: 'hour',
+			location: locations[Math.floor(Math.random() * locations.length)],
+			specialties: ['Childcare', 'Babysitting', 'Nanny services'],
+			verified: Math.random() > 0.25,
+			responseTime: ['usually within 1 hour', 'usually within 2 hours'][Math.floor(Math.random() * 2)],
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 600}`,
+			bio: `Experienced childcare provider specializing in babysitting and nanny services. Trusted and reliable.`
 		});
 	}
 
