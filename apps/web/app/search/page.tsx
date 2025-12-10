@@ -63,7 +63,8 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		serviceType: String(searchParams.serviceType || searchParams.petType || 'all'),
 		location: String(searchParams.location || ''),
 		startDate: String(searchParams.startDate || ''),
-		endDate: String(searchParams.endDate || '')
+		endDate: String(searchParams.endDate || ''),
+		radius: String(searchParams.radius || '100') // Default to 100 (any distance) if not specified
 	});
 
 	// Map keywords to service types with improved matching
@@ -311,11 +312,23 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 					return searchResult;
 				});
 
+				// Filter by radius if user location is available and radius is not "100" (any distance)
+				let filteredByRadius = resultsWithDistance;
+				if (userLocation && searchQuery.radius && searchQuery.radius !== '100') {
+					const radiusMiles = parseFloat(searchQuery.radius);
+					if (!isNaN(radiusMiles)) {
+						filteredByRadius = resultsWithDistance.filter((result) => {
+							// Include providers with distance within radius, or if distance is not available (fallback)
+							return result.distance === undefined || result.distance <= radiusMiles;
+						});
+					}
+				}
+
 				// Group by platform
 				const grouped: Record<string, SearchResult[]> = {};
 				const platformInfoMap: Record<string, PlatformInfo> = {};
 				
-				resultsWithDistance.forEach((result) => {
+				filteredByRadius.forEach((result) => {
 					if (!grouped[result.platform]) {
 						grouped[result.platform] = [];
 						platformInfoMap[result.platform] = {
@@ -329,7 +342,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 					platformInfoMap[result.platform].count++;
 				});
 
-				setResults(resultsWithDistance);
+				setResults(filteredByRadius);
 				setGroupedResults(grouped);
 				setPlatforms(Object.values(platformInfoMap));
 			} catch (error) {
@@ -340,7 +353,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		}, 300); // Simulate network delay
 
 		return () => clearTimeout(timer);
-	}, [searchQuery.serviceType, searchQuery.location, minRating, maxPrice, minPrice, searchKeywordDebounced, selectedSpecialties, verifiedOnly, userLocation]);
+	}, [searchQuery.serviceType, searchQuery.location, searchQuery.radius, minRating, maxPrice, minPrice, searchKeywordDebounced, selectedSpecialties, verifiedOnly, userLocation]);
 
 	// Reset service search flag when search completes
 	useEffect(() => {
@@ -1188,8 +1201,32 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 									</defs>
 									<rect width="100%" height="100%" fill="url(#grid)" />
 									
+									{/* Draw search radius circle if radius is specified and not "any distance" */}
+									{userLocation && searchQuery.radius && searchQuery.radius !== '100' && (() => {
+										const radiusMiles = parseFloat(searchQuery.radius);
+										if (!isNaN(radiusMiles)) {
+											// Convert radius from miles to SVG pixels (rough approximation: 1 mile ≈ 12 pixels at this scale)
+											const radiusPixels = radiusMiles * 12;
+											const centerX = 400;
+											const centerY = 200;
+											return (
+												<circle
+													cx={centerX}
+													cy={centerY}
+													r={radiusPixels}
+													fill="none"
+													stroke="#6366f1"
+													strokeWidth="2"
+													strokeDasharray="5,5"
+													opacity="0.3"
+												/>
+											);
+										}
+										return null;
+									})()}
+									
 									{/* Draw lines from user location to each provider */}
-									{sortedResults.slice(0, 20).map((result, idx) => {
+									{sortedResults.map((result, idx) => {
 										if (!result.coordinates || !userLocation) return null;
 										
 										// Convert lat/lng to SVG coordinates (rough approximation for NYC area)
@@ -1324,20 +1361,26 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										fontSize: '13px',
 										display: 'flex',
 										flexDirection: 'column',
-										gap: '4px'
+										gap: '4px',
+										minWidth: '160px'
 									}}
 								>
 									<div style={{ fontWeight: 700, color: '#111827' }}>Search Radius</div>
 									<div style={{ fontSize: '18px', fontWeight: 800, color: '#6366f1' }}>
-										{Math.max(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0))} mi
+										{searchQuery.radius === '100' ? 'Any' : searchQuery.radius} {searchQuery.radius !== '100' && 'mi'}
 									</div>
-									<div style={{ fontSize: '11px', color: '#6b7280' }}>
-										{Math.min(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0))} - {Math.max(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0))} mi range
+									<div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+										{sortedResults.filter(r => r.distance !== undefined).length} providers within radius
 									</div>
+									{sortedResults.filter(r => r.distance !== undefined).length > 0 && (
+										<div style={{ fontSize: '11px', color: '#6b7280' }}>
+											{Math.min(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0)).toFixed(1)} - {Math.max(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0)).toFixed(1)} mi range
+										</div>
+									)}
 								</div>
 							</div>
 							<p style={{ marginTop: '12px', fontSize: '13px', color: '#6b7280', textAlign: 'center' }}>
-								Showing {sortedResults.length} providers within your search area. Click on provider cards below to see details.
+								Showing {sortedResults.length} provider{sortedResults.length !== 1 ? 's' : ''} {searchQuery.radius && searchQuery.radius !== '100' ? `within ${searchQuery.radius} miles` : 'in your search area'}. Click on provider cards below to see details.
 							</p>
 						</div>
 					)}
