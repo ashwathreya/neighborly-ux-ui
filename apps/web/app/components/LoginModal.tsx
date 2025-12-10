@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getApiUrl } from '../lib/api';
 
 interface LoginModalProps {
 	isOpen: boolean;
@@ -62,38 +61,39 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 		setIsLoading(true);
 		setStatus(`Connecting to ${provider}...`);
 
+		// Demo OAuth: simulate social login without real OAuth flow
+		await new Promise(resolve => setTimeout(resolve, 1000));
+
 		try {
-			const base = getApiUrl();
-			const redirectUri = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+			// Create demo user from provider
+			const providerNames: Record<string, string> = {
+				google: 'Google User',
+				facebook: 'Facebook User',
+				apple: 'Apple User'
+			};
 
-			// Initiate OAuth flow
-			const res = await fetch(`${base}/api/auth/oauth/${provider.toLowerCase()}?redirectUri=${encodeURIComponent(redirectUri)}`, {
-				method: 'GET',
-				signal: AbortSignal.timeout(5000)
-			});
+			const demoUser = {
+				id: `demo-${provider.toLowerCase()}-${Date.now()}`,
+				name: providerNames[provider.toLowerCase()] || `${provider} User`,
+				email: `${provider.toLowerCase()}.user.${Date.now()}@example.com`,
+				role: 'owner' as const
+			};
 
-			if (!res.ok) {
-				const errorData = await res.json().catch(() => ({ error: 'OAuth initiation failed' }));
-				setStatus(`❌ ${errorData.error ?? 'Failed to start OAuth flow'}`);
-				setIsLoading(false);
-				return;
+			setStatus(`✅ Signed in with ${provider}!`);
+			if (typeof window !== 'undefined') {
+				localStorage.setItem('token', `demo-oauth-${provider}-${Date.now()}`);
+				const userWithViewMode = { ...demoUser, viewMode: viewMode };
+				localStorage.setItem('user', JSON.stringify(userWithViewMode));
+				localStorage.setItem('viewMode', viewMode);
 			}
-
-			const data = await res.json();
 			
-			// Redirect to OAuth provider (or callback URL for demo)
-			if (data.authUrl) {
-				window.location.href = data.authUrl;
-			} else {
-				setStatus(`❌ No OAuth URL received`);
-				setIsLoading(false);
-			}
+			setTimeout(() => {
+				onClose();
+				window.location.reload();
+			}, 1500);
 		} catch (error: any) {
-			if (error.name === 'AbortError') {
-				setStatus('⏱️ Request timed out. Please check your connection.');
-			} else {
-				setStatus(`❌ Error: ${error.message ?? 'OAuth connection failed'}`);
-			}
+			setStatus(`❌ Error: ${error.message ?? 'Social login failed'}`);
+		} finally {
 			setIsLoading(false);
 		}
 	}
@@ -103,7 +103,10 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 		setIsLoading(true);
 		setStatus(null);
 
-		// Validation
+		// Demo authentication - no real backend needed
+		// Accept any email/password for demo purposes
+		
+		// Basic validation
 		if (mode === 'signup') {
 			if (!name || !email || !password) {
 				setStatus('❌ Please fill in all fields');
@@ -120,93 +123,70 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 				setIsLoading(false);
 				return;
 			}
-		}
-
-		try {
-			const base = getApiUrl();
-
-			// Check if API is reachable
-			try {
-				const healthCheck = await fetch(`${base}/api/health`, {
-					method: 'GET',
-					signal: AbortSignal.timeout(3000)
-				});
-				if (!healthCheck.ok) {
-					throw new Error('API server is not responding');
-				}
-			} catch (healthError) {
-				setStatus('⚠️ API server is not responding. Please try again.');
+		} else {
+			// Login validation
+			if (!email || !password) {
+				setStatus('❌ Please enter your email and password');
 				setIsLoading(false);
 				return;
 			}
+		}
 
+		// Simulate API delay for realistic feel
+		await new Promise(resolve => setTimeout(resolve, 800));
+
+		try {
 			if (mode === 'login') {
 				setStatus('Signing in…');
-				const res = await fetch(`${base}/api/auth/login`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ email, password }),
-					signal: AbortSignal.timeout(5000)
-				});
+				
+				// Demo login: accept any credentials
+				const demoUser = {
+					id: 'demo-1',
+					name: name || email.split('@')[0] || 'Demo User',
+					email: email,
+					role: 'owner' as const
+				};
 
-				if (!res.ok) {
-					const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-					setStatus(`❌ ${errorData.error ?? 'Login failed'}`);
-				} else {
-					const data = await res.json();
-					setStatus(`✅ Signed in as ${data.user.name}`);
-					if (typeof window !== 'undefined') {
-						localStorage.setItem('token', data.token);
-						// Store user with view mode preference
-						const userWithViewMode = { ...data.user, viewMode: viewMode };
-						localStorage.setItem('user', JSON.stringify(userWithViewMode));
-						localStorage.setItem('viewMode', viewMode); // Also store separately for easy access
-					}
-					setTimeout(() => {
-						onClose();
-						// Trigger page update by closing modal (parent component will detect user change)
-						window.location.reload();
-					}, 1500);
+				setStatus(`✅ Signed in as ${demoUser.name}`);
+				if (typeof window !== 'undefined') {
+					localStorage.setItem('token', 'demo-token-' + Date.now());
+					// Store user with view mode preference
+					const userWithViewMode = { ...demoUser, viewMode: viewMode };
+					localStorage.setItem('user', JSON.stringify(userWithViewMode));
+					localStorage.setItem('viewMode', viewMode);
 				}
+				setTimeout(() => {
+					onClose();
+					window.location.reload();
+				}, 1500);
 			} else {
 				// Sign up
 				setStatus('Creating your account…');
-				const res = await fetch(`${base}/api/auth/register`, {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify({ name, email, password, role }),
-					signal: AbortSignal.timeout(5000)
-				});
+				
+				// Demo signup: create user from form data
+				const newUser = {
+					id: 'demo-' + Date.now(),
+					name: name,
+					email: email,
+					role: role
+				};
 
-				if (!res.ok) {
-					const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-					setStatus(`❌ ${errorData.error ?? 'Sign up failed'}`);
-				} else {
-					const data = await res.json();
-					setStatus(`✅ Account created! Welcome, ${data.user.name}!`);
-					if (typeof window !== 'undefined') {
-						localStorage.setItem('token', `fake-${data.user.id}`);
-						// Set viewMode based on role: sitter = provider, owner = customer
-						const viewMode = role === 'sitter' ? 'provider' : 'customer';
-						const userWithViewMode = { ...data.user, viewMode };
-						localStorage.setItem('user', JSON.stringify(userWithViewMode));
-						localStorage.setItem('viewMode', viewMode);
-					}
-					setTimeout(() => {
-						onClose();
-						// Trigger page update by closing modal (parent component will detect user change)
-						window.location.reload();
-					}, 2000);
+				setStatus(`✅ Account created! Welcome, ${newUser.name}!`);
+				if (typeof window !== 'undefined') {
+					localStorage.setItem('token', 'demo-token-' + Date.now());
+					// Set viewMode based on role: sitter = provider, owner = customer
+					const viewMode = role === 'sitter' ? 'provider' : 'customer';
+					const userWithViewMode = { ...newUser, viewMode };
+					localStorage.setItem('user', JSON.stringify(userWithViewMode));
+					localStorage.setItem('viewMode', viewMode);
 				}
+				setTimeout(() => {
+					onClose();
+					window.location.reload();
+				}, 2000);
 			}
 		} catch (error: any) {
-			if (error.name === 'AbortError') {
-				setStatus('⏱️ Request timed out. Please check your connection.');
-			} else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-				setStatus('❌ Cannot connect to API server. Make sure it\'s running on http://localhost:4000');
-			} else {
-				setStatus(`❌ Error: ${error.message ?? 'Something went wrong'}`);
-			}
+			setStatus(`❌ Error: ${error.message ?? 'Something went wrong'}`);
 		} finally {
 			setIsLoading(false);
 		}
@@ -389,11 +369,26 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 					>
 						{mode === 'login' ? 'Welcome back' : 'Create your account'}
 					</h2>
-					<p style={{ color: '#6b7280', marginBottom: '32px', fontSize: '15px' }}>
+					<p style={{ color: '#6b7280', marginBottom: '16px', fontSize: '15px' }}>
 						{mode === 'login'
 							? 'Sign in to continue to Neighborly'
 							: 'Join thousands of neighbors finding trusted services'}
 					</p>
+					<div
+						style={{
+							padding: '12px 16px',
+							background: '#fef3c7',
+							borderRadius: '8px',
+							marginBottom: '24px',
+							border: '1px solid #fbbf24'
+						}}
+					>
+						<p style={{ margin: 0, fontSize: '13px', color: '#92400e', lineHeight: '1.5' }}>
+							<span style={{ fontWeight: 600 }}>📱 Demo Mode:</span> {mode === 'login' 
+								? 'No real account required. Use any email/password to explore.'
+								: 'This is a demo. Your account is saved locally.'}
+						</p>
+					</div>
 
 					{/* View Mode Selector - Only for login */}
 					{mode === 'login' && (

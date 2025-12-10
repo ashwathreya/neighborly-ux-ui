@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
-import { getApiUrl } from '../lib/api';
+import { PROVIDERS, filterProviders, type Provider } from '../data/providers';
 
 interface SearchResult {
 	id: string;
@@ -238,62 +238,96 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		return Math.round(R * c * 10) / 10; // Round to 1 decimal
 	};
 
+	// Filter providers using mock data
 	useEffect(() => {
-		const fetchResults = async () => {
-			setIsLoading(true);
+		setIsLoading(true);
+		
+		// Simulate API delay for realistic feel
+		const timer = setTimeout(() => {
 			try {
-				const base = getApiUrl();
-				const params = new URLSearchParams({
+				// Filter providers based on search criteria
+				const filtered = filterProviders(PROVIDERS, {
 					serviceType: searchQuery.serviceType,
 					location: searchQuery.location,
-					startDate: searchQuery.startDate,
-					endDate: searchQuery.endDate
+					minRating: minRating,
+					maxPrice: maxPrice,
+					minPrice: minPrice,
+					searchKeyword: searchKeywordDebounced,
+					selectedSpecialties: selectedSpecialties.length > 0 ? selectedSpecialties : undefined,
 				});
 
-				const res = await fetch(`${base}/api/aggregate/search?${params}`);
-				if (res.ok) {
-					const data = await res.json();
-					let resultsWithDistance = data.results || [];
-					
-					// Add distance and coordinates to results
+				// Convert Provider format to SearchResult format
+				let resultsWithDistance = filtered.map((provider) => {
+					const searchResult: SearchResult = {
+						id: provider.id,
+						name: provider.name,
+						platform: provider.platform,
+						platformName: provider.platformName || provider.platform,
+						platformIcon: provider.platformIcon || '🔧',
+						platformColor: provider.platformColor || '#6366f1',
+						rating: provider.rating.toString(),
+						reviews: provider.reviews,
+						price: provider.price,
+						priceUnit: provider.priceUnit,
+						location: provider.location,
+						specialties: provider.specialties,
+						verified: provider.verified,
+						responseTime: provider.responseTime || 'usually within 1 hour',
+						image: provider.image || `https://api.dicebear.com/7.x/avataaars/svg?seed=${provider.name}`,
+						externalUrl: provider.externalUrl || `https://${provider.platform}.com/profile/${provider.name}`,
+					};
+
+					// Add distance and coordinates if user location is available
 					if (userLocation) {
-						resultsWithDistance = resultsWithDistance.map((result: SearchResult) => {
-							// Generate random coordinates near user location (for demo)
-							// In production, these would come from the API
-							const offsetLat = (Math.random() - 0.5) * 0.2; // ~10 miles
-							const offsetLng = (Math.random() - 0.5) * 0.2;
-							const coords = {
-								lat: userLocation.lat + offsetLat,
-								lng: userLocation.lng + offsetLng
-							};
-							const distance = calculateDistance(
-								userLocation.lat,
-								userLocation.lng,
-								coords.lat,
-								coords.lng
-							);
-							
-							return {
-								...result,
-								distance,
-								coordinates: coords
-							};
-						});
+						const offsetLat = (Math.random() - 0.5) * 0.2; // ~10 miles
+						const offsetLng = (Math.random() - 0.5) * 0.2;
+						const coords = {
+							lat: userLocation.lat + offsetLat,
+							lng: userLocation.lng + offsetLng
+						};
+						const distance = calculateDistance(
+							userLocation.lat,
+							userLocation.lng,
+							coords.lat,
+							coords.lng
+						);
+						searchResult.distance = distance;
+						searchResult.coordinates = coords;
 					}
-					
-					setResults(resultsWithDistance);
-					setGroupedResults(data.groupedByPlatform || {});
-					setPlatforms(data.platforms || []);
-				}
+
+					return searchResult;
+				});
+
+				// Group by platform
+				const grouped: Record<string, SearchResult[]> = {};
+				const platformInfoMap: Record<string, PlatformInfo> = {};
+				
+				resultsWithDistance.forEach((result) => {
+					if (!grouped[result.platform]) {
+						grouped[result.platform] = [];
+						platformInfoMap[result.platform] = {
+							name: result.platformName,
+							icon: result.platformIcon,
+							color: result.platformColor,
+							count: 0
+						};
+					}
+					grouped[result.platform].push(result);
+					platformInfoMap[result.platform].count++;
+				});
+
+				setResults(resultsWithDistance);
+				setGroupedResults(grouped);
+				setPlatforms(Object.values(platformInfoMap));
 			} catch (error) {
-				console.error('Error fetching results:', error);
+				console.error('Error filtering providers:', error);
 			} finally {
 				setIsLoading(false);
 			}
-		};
+		}, 300); // Simulate network delay
 
-		fetchResults();
-	}, [searchQuery.serviceType, searchQuery.location, searchQuery.startDate, searchQuery.endDate, userLocation]);
+		return () => clearTimeout(timer);
+	}, [searchQuery.serviceType, searchQuery.location, minRating, maxPrice, minPrice, searchKeywordDebounced, selectedSpecialties, verifiedOnly, userLocation]);
 
 	// Reset service search flag when search completes
 	useEffect(() => {

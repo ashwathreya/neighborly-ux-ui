@@ -1,9 +1,10 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
-import { getApiUrl } from '../lib/api';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
+	const router = useRouter();
 	const [email, setEmail] = useState('');
 	const [status, setStatus] = useState<string | null>(null);
 	const [isLoading, setIsLoading] = useState(false);
@@ -13,52 +14,35 @@ export default function LoginPage() {
 		setIsLoading(true);
 		setStatus(null);
 		
+		if (!email) {
+			setStatus('❌ Please enter your email');
+			setIsLoading(false);
+			return;
+		}
+
+		// Demo login: accept any email
+		await new Promise(resolve => setTimeout(resolve, 800));
+
 		try {
-			const base = getApiUrl();
-			
-			// First check if API is reachable
-			try {
-				const healthCheck = await fetch(`${base}/api/health`, { 
-					method: 'GET',
-					signal: AbortSignal.timeout(3000)
-				});
-				if (!healthCheck.ok) {
-					throw new Error('API server is not responding');
-				}
-			} catch (healthError) {
-				setStatus('⚠️ API server is not responding. Please try again.');
-				setIsLoading(false);
-				return;
-			}
-
 			setStatus('Signing in…');
-			const res = await fetch(`${base}/api/auth/login`, {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email }),
-				signal: AbortSignal.timeout(5000)
-			});
+			
+			const demoUser = {
+				id: 'demo-1',
+				name: email.split('@')[0] || 'Demo User',
+				email: email,
+				role: 'owner'
+			};
 
-			if (!res.ok) {
-				const errorData = await res.json().catch(() => ({ error: 'Unknown error' }));
-				setStatus(`❌ ${errorData.error ?? 'Login failed'}`);
-			} else {
-				const data = await res.json();
-				setStatus(`✅ Signed in as ${data.user.name}`);
-				// Store token in localStorage (in a real app, use httpOnly cookies)
-				if (typeof window !== 'undefined') {
-					localStorage.setItem('token', data.token);
-					localStorage.setItem('user', JSON.stringify(data.user));
-				}
+			setStatus(`✅ Signed in as ${demoUser.name}`);
+			if (typeof window !== 'undefined') {
+				localStorage.setItem('token', 'demo-token-' + Date.now());
+				localStorage.setItem('user', JSON.stringify(demoUser));
+				setTimeout(() => {
+					router.push('/');
+				}, 1000);
 			}
 		} catch (error: any) {
-			if (error.name === 'AbortError') {
-				setStatus('⏱️ Request timed out. Please check your connection.');
-			} else if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-				setStatus('❌ Cannot connect to API server. Make sure it\'s running on http://localhost:4000');
-			} else {
-				setStatus(`❌ Error: ${error.message ?? 'Something went wrong'}`);
-			}
+			setStatus(`❌ Error: ${error.message ?? 'Something went wrong'}`);
 		} finally {
 			setIsLoading(false);
 		}
