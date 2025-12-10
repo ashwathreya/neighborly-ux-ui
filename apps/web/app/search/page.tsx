@@ -70,6 +70,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	const [userLocationName, setUserLocationName] = useState<{ city: string; state: string } | null>(null);
 	const [mapRadius, setMapRadius] = useState<number>(parseFloat(searchParams.radius as string) || 50);
 	const [mapZoom, setMapZoom] = useState<number>(1);
+	const [userHasZoomed, setUserHasZoomed] = useState<boolean>(false); // Track if user manually zoomed
 
 	// Map keywords to service types with improved matching
 	const getServiceTypeFromKeyword = (keyword: string): string | null => {
@@ -249,6 +250,23 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 			}
 		}
 	}, [searchQuery.radius]);
+
+	// Auto-zoom based on mapRadius
+	// Calculate zoom level to fit the radius nicely in the map viewport
+	useEffect(() => {
+		if (userLocation && !userHasZoomed) {
+			// Calculate optimal zoom level based on radius
+			// For smaller radius, zoom in more; for larger radius, zoom out
+			// Viewport is 800x400 pixels, radius circle should take ~70% of the smaller dimension (280px)
+			// Base scale: 1 mile ≈ 12 pixels at zoom 1
+			// We want radius * zoom * baseScale ≈ 280
+			// So: zoom ≈ 280 / (radius * baseScale)
+			const baseScale = 12;
+			const targetPixels = 280; // Target radius circle size in pixels
+			const calculatedZoom = Math.max(0.3, Math.min(3, targetPixels / (mapRadius * baseScale)));
+			setMapZoom(calculatedZoom);
+		}
+	}, [mapRadius, userLocation, userHasZoomed]);
 
 	// Calculate distance between two coordinates (Haversine formula)
 	const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -1235,7 +1253,10 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 									{/* Zoom Controls */}
 									<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
 										<button
-											onClick={() => setMapZoom(Math.max(0.5, mapZoom - 0.2))}
+											onClick={() => {
+												setMapZoom(Math.max(0.3, mapZoom - 0.2));
+												setUserHasZoomed(true);
+											}}
 											style={{
 												padding: '8px 12px',
 												background: '#f3f4f6',
@@ -1253,7 +1274,10 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 											{Math.round(mapZoom * 100)}%
 										</span>
 										<button
-											onClick={() => setMapZoom(Math.min(3, mapZoom + 0.2))}
+											onClick={() => {
+												setMapZoom(Math.min(3, mapZoom + 0.2));
+												setUserHasZoomed(true);
+											}}
 											style={{
 												padding: '8px 12px',
 												background: '#f3f4f6',
@@ -1284,6 +1308,8 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 											onChange={(e) => {
 												const value = parseInt(e.target.value) || 1;
 												setMapRadius(Math.max(1, Math.min(100, value)));
+												// Reset manual zoom flag when radius changes so auto-zoom takes over
+												setUserHasZoomed(false);
 											}}
 											style={{
 												padding: '4px 8px',
@@ -1300,7 +1326,11 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										min="1"
 										max="100"
 										value={mapRadius}
-										onChange={(e) => setMapRadius(parseInt(e.target.value))}
+										onChange={(e) => {
+											setMapRadius(parseInt(e.target.value));
+											// Reset manual zoom flag when radius changes so auto-zoom takes over
+											setUserHasZoomed(false);
+										}}
 										style={{
 											width: '100%',
 											height: '8px',
@@ -1421,28 +1451,45 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 													opacity="0.2"
 													strokeDasharray="4,4"
 												/>
-												{/* Provider marker */}
-												<circle
-													cx={providerX}
-													cy={providerY}
-													r="6"
-													fill={result.platformColor}
-													stroke="white"
-													strokeWidth="2"
-												/>
-												{/* Distance label */}
-												{result.distance !== undefined && (
-													<text
-														x={providerX + 10}
-														y={providerY - 10}
-														fontSize="12"
+												{/* Clickable provider marker */}
+												<g
+													onClick={() => {
+														setSelectedProvider(result);
+														setIsModalOpen(true);
+													}}
+													style={{ cursor: 'pointer' }}
+												>
+													{/* Invisible larger hit area for easier clicking */}
+													<circle
+														cx={providerX}
+														cy={providerY}
+														r="15"
+														fill="transparent"
+														stroke="none"
+													/>
+													{/* Provider marker */}
+													<circle
+														cx={providerX}
+														cy={providerY}
+														r="6"
 														fill={result.platformColor}
-														fontWeight="600"
-														style={{ pointerEvents: 'none' }}
-													>
-														{result.distance}mi
-													</text>
-												)}
+														stroke="white"
+														strokeWidth="2"
+													/>
+													{/* Distance label */}
+													{result.distance !== undefined && (
+														<text
+															x={providerX + 10}
+															y={providerY - 10}
+															fontSize="12"
+															fill={result.platformColor}
+															fontWeight="600"
+															style={{ pointerEvents: 'none' }}
+														>
+															{result.distance}mi
+														</text>
+													)}
+												</g>
 											</g>
 										);
 									})}
