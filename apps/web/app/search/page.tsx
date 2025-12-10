@@ -278,35 +278,50 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 						externalUrl: provider.externalUrl || `https://${provider.platform}.com/profile/${provider.name}`,
 					};
 
-					// Use provider's coordinates if available, otherwise generate from user location
-					if (provider.coordinates) {
-						searchResult.coordinates = provider.coordinates;
-						// Calculate distance from user location if available
-						if (userLocation) {
-							const distance = calculateDistance(
-								userLocation.lat,
-								userLocation.lng,
-								provider.coordinates.lat,
-								provider.coordinates.lng
-							);
-							searchResult.distance = distance;
-						}
-					} else if (userLocation) {
-						// Fallback: generate random coordinates near user location
-						const offsetLat = (Math.random() - 0.5) * 0.2;
-						const offsetLng = (Math.random() - 0.5) * 0.2;
+					// Generate coordinates relative to user location if available, otherwise use provider's coordinates
+					if (userLocation) {
+						// Generate coordinates within a reasonable radius from user location
+						// Use the provider's ID to create consistent but varied distances (deterministic randomness)
+						const providerIdNum = parseInt(provider.id) || 0;
+						const seed = providerIdNum * 137.508; // Use golden angle for good distribution
+						
+						// Determine max radius - use search radius if specified, otherwise default to 50 miles
+						const maxRadiusMiles = searchQuery.radius && searchQuery.radius !== '100' 
+							? parseFloat(searchQuery.radius) * 1.2 // Generate slightly beyond search radius for variety
+							: 50; // Default to 50 miles if no radius specified
+						
+						// Generate distance between 0.5 and maxRadiusMiles using seeded random
+						const normalizedSeed = (Math.sin(seed) + 1) / 2; // Convert to 0-1 range
+						const distanceMiles = 0.5 + (normalizedSeed * (maxRadiusMiles - 0.5));
+						
+						// Generate angle using provider ID for consistent positioning
+						const angle = (providerIdNum * 137.508) % 360; // Golden angle distribution
+						const angleRad = (angle * Math.PI) / 180;
+						
+						// Convert distance from miles to degrees
+						// 1 degree latitude ≈ 69 miles, longitude varies by latitude
+						const latOffset = distanceMiles / 69;
+						const lngOffset = distanceMiles / (69 * Math.cos(userLocation.lat * Math.PI / 180));
+						
+						// Calculate coordinates in a circle around user location
 						const coords = {
-							lat: userLocation.lat + offsetLat,
-							lng: userLocation.lng + offsetLng
+							lat: userLocation.lat + (latOffset * Math.cos(angleRad)),
+							lng: userLocation.lng + (lngOffset * Math.sin(angleRad))
 						};
+						
+						// Recalculate actual distance using Haversine formula
 						const distance = calculateDistance(
 							userLocation.lat,
 							userLocation.lng,
 							coords.lat,
 							coords.lng
 						);
-						searchResult.distance = distance;
+						
 						searchResult.coordinates = coords;
+						searchResult.distance = distance;
+					} else if (provider.coordinates) {
+						// Fallback to provider's original coordinates if no user location
+						searchResult.coordinates = provider.coordinates;
 					}
 
 					return searchResult;
