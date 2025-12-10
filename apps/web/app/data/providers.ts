@@ -20,224 +20,265 @@ export interface Provider {
 	coordinates?: { lat: number; lng: number };
 }
 
-export const PROVIDERS: Provider[] = [
-	{
-		id: '1',
-		name: 'Sarah K.',
-		platform: 'rover',
-		platformName: 'Rover',
-		platformIcon: '🐕',
-		platformColor: '#00B9B4',
-		rating: 4.9,
-		reviews: 128,
-		price: 35,
-		priceUnit: 'hour',
-		location: 'Jersey City, NJ',
-		specialties: ['Dog walking', 'Pet sitting', 'Dog', 'Pet care'],
-		verified: true,
-		responseTime: 'usually within 1 hour',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sarah',
-		bio: 'Passionate pet care provider with 5+ years of experience. I specialize in dog walking, pet sitting, and overnight care. I treat every pet like family and ensure they receive the best care possible.',
-	},
-	{
-		id: '2',
-		name: 'Mike H.',
-		platform: 'taskrabbit',
-		platformName: 'TaskRabbit',
-		platformIcon: '🐰',
-		platformColor: '#00C853',
-		rating: 4.7,
-		reviews: 84,
-		price: 45,
-		priceUnit: 'hour',
-		location: 'New York, NY',
-		specialties: ['Handyman', 'Furniture assembly', 'Home repair', 'TV mounting'],
-		verified: true,
-		responseTime: 'usually within 30 minutes',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Mike',
-		bio: 'Professional handyman with over 10 years of experience. Expert in furniture assembly, TV mounting, plumbing, and general home repairs. Fast, reliable, and always ready to help!',
-	},
-	{
-		id: '3',
-		name: 'Emma L.',
-		platform: 'wyzant',
-		platformName: 'Wyzant',
-		platformIcon: '📚',
-		platformColor: '#8b5cf6',
-		rating: 4.8,
-		reviews: 52,
-		price: 40,
-		priceUnit: 'hour',
-		location: 'Uptown, New York',
-		specialties: ['Math Tutoring', 'Science Tutoring', 'Test Prep', 'Tutoring'],
-		verified: true,
-		responseTime: 'usually within 2 hours',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emma',
-		bio: 'Experienced tutor specializing in math, science, and test preparation. I help students achieve their academic goals with personalized learning plans and patient instruction.',
-	},
-	{
-		id: '4',
-		name: 'Sarah M.',
-		platform: 'rover',
-		platformName: 'Rover',
-		platformIcon: '🐕',
-		platformColor: '#00B9B4',
-		rating: 4.9,
-		reviews: 35,
-		price: 30,
-		priceUnit: 'hour',
-		location: 'Downtown, New York',
-		specialties: ['Pet Sitting', 'Dog Walking', 'Pet Care', 'Cat care'],
-		verified: true,
-		responseTime: 'usually within 1 hour',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SarahM',
-		bio: 'Passionate pet care provider with 5+ years of experience. I specialize in dog walking, pet sitting, and overnight care.',
-	},
-	{
-		id: '5',
-		name: 'Michael T.',
-		platform: 'taskrabbit',
-		platformName: 'TaskRabbit',
-		platformIcon: '🐰',
-		platformColor: '#00C853',
-		rating: 5.0,
-		reviews: 89,
-		price: 50,
-		priceUnit: 'hour',
-		location: 'Midtown, New York',
-		specialties: ['Handyman Services', 'Furniture Assembly', 'TV Mounting', 'Plumbing'],
-		verified: true,
-		responseTime: 'usually within 30 minutes',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Michael',
-		bio: 'Professional handyman with over 10 years of experience. Expert in furniture assembly, TV mounting, plumbing, and general home repairs.',
-	},
-	{
-		id: '6',
-		name: 'Sam Sitter',
-		platform: 'rover',
-		platformName: 'Rover',
-		platformIcon: '🐕',
-		platformColor: '#00B9B4',
-		rating: 4.9,
-		reviews: 145,
-		price: 40,
-		priceUnit: 'day',
-		location: 'Brooklyn, NY',
-		specialties: ['dog', 'senior care', 'medication', 'Pet sitting'],
-		verified: true,
-		responseTime: 'usually within 1 hour',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Sam',
-		bio: 'Experienced dog walker and overnight sitter. First aid trained.',
-	},
-	{
-		id: '7',
-		name: 'Sarah Johnson',
-		platform: 'rover',
-		platformName: 'Rover',
-		platformIcon: '🐕',
-		platformColor: '#00B9B4',
-		rating: 4.8,
-		reviews: 92,
-		price: 35,
-		priceUnit: 'hour',
-		location: 'Queens, NY',
-		specialties: ['cat', 'small dog', 'feeding', 'Pet care'],
-		verified: true,
-		responseTime: 'usually within 2 hours',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=SarahJ',
-		bio: 'Professional pet sitter with 5+ years of experience. Specialized in cats and small dogs.',
-	},
-	{
-		id: '8',
-		name: 'Mike Chen',
-		platform: 'taskrabbit',
-		platformName: 'TaskRabbit',
-		platformIcon: '🐰',
-		platformColor: '#00C853',
-		rating: 4.7,
-		reviews: 67,
-		price: 45,
-		priceUnit: 'hour',
-		location: 'Staten Island, NY',
-		specialties: ['dog', 'walking', 'overnight', 'Pet care'],
-		verified: true,
-		responseTime: 'usually within 1 hour',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=MikeC',
-		bio: 'Reliable and caring pet caregiver. Available for walks, visits, and overnight stays.',
-	},
-	{
-		id: '9',
-		name: 'Emily Rodriguez',
-		platform: 'rover',
-		platformName: 'Rover',
-		platformIcon: '🐕',
-		platformColor: '#00B9B4',
-		rating: 5.0,
-		reviews: 203,
-		price: 50,
-		priceUnit: 'hour',
-		location: 'Manhattan, NY',
-		specialties: ['senior care', 'medication', 'special needs', 'Pet care'],
-		verified: true,
-		responseTime: 'usually within 45 minutes',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Emily',
-		bio: 'Animal lover with veterinary assistant training. Experienced with senior pets and special needs.',
-	},
-	{
-		id: '10',
-		name: 'David Park',
-		platform: 'thumbtack',
-		platformName: 'Thumbtack',
-		platformIcon: '👍',
-		platformColor: '#009688',
-		rating: 4.6,
-		reviews: 78,
-		price: 55,
-		priceUnit: 'hour',
-		location: 'Bronx, NY',
-		specialties: ['Handyman', 'Home repair', 'Electrical', 'Plumbing'],
-		verified: true,
-		responseTime: 'usually within 1 hour',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=David',
-		bio: 'Licensed handyman with expertise in electrical, plumbing, and general home repairs.',
-	},
-	{
-		id: '11',
-		name: 'Lisa Wang',
-		platform: 'care',
-		platformName: 'Care.com',
-		platformIcon: '💙',
-		platformColor: '#4A90E2',
-		rating: 4.9,
-		reviews: 156,
-		price: 25,
-		priceUnit: 'hour',
-		location: 'Long Island, NY',
-		specialties: ['House cleaning', 'Deep cleaning', 'Organizing'],
-		verified: true,
-		responseTime: 'usually within 2 hours',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Lisa',
-		bio: 'Professional house cleaner with attention to detail. Specializing in deep cleaning and organization.',
-	},
-	{
-		id: '12',
-		name: 'James Miller',
-		platform: 'wyzant',
-		platformName: 'Wyzant',
-		platformIcon: '📚',
-		platformColor: '#8b5cf6',
-		rating: 4.8,
-		reviews: 112,
-		price: 45,
-		priceUnit: 'hour',
-		location: 'Westchester, NY',
-		specialties: ['Math Tutoring', 'SAT Prep', 'ACT Prep', 'Test Prep'],
-		verified: true,
-		responseTime: 'usually within 3 hours',
-		image: 'https://api.dicebear.com/7.x/avataaars/svg?seed=James',
-		bio: 'Expert tutor in math and test preparation. Helping students achieve their goals for over 8 years.',
-	},
+// Helper function to generate random rating between min and max
+const randomRating = (min: number, max: number) => Math.round((Math.random() * (max - min) + min) * 10) / 10;
+
+// Helper function to generate random price
+const randomPrice = (min: number, max: number) => Math.round(Math.random() * (max - min) + min);
+
+// Helper function to generate random reviews
+const randomReviews = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min);
+
+const firstNames = [
+	'Sarah', 'Mike', 'Emma', 'James', 'Olivia', 'David', 'Sophia', 'Daniel', 'Emily', 'Michael',
+	'Ava', 'Matthew', 'Isabella', 'Andrew', 'Mia', 'Joshua', 'Charlotte', 'Christopher', 'Amelia', 'Joseph',
+	'Harper', 'William', 'Evelyn', 'Alexander', 'Abigail', 'Ryan', 'Elizabeth', 'Tyler', 'Sofia', 'Nicholas',
+	'Avery', 'Benjamin', 'Ella', 'Samuel', 'Scarlett', 'Nathan', 'Victoria', 'Jonathan', 'Aria', 'Christian',
+	'Grace', 'Noah', 'Chloe', 'Brandon', 'Lily', 'Logan', 'Zoe', 'Dylan', 'Natalie', 'Justin',
+	'Layla', 'Ethan', 'Addison', 'Jason', 'Lillian', 'Austin', 'Aubrey', 'Evan', 'Lucy', 'Kevin',
+	'Audrey', 'Jose', 'Bella', 'Adam', 'Nora', 'Elijah', 'Hannah', 'Luke', 'Leah', 'Sean'
 ];
+
+const lastNames = [
+	'Smith', 'Johnson', 'Williams', 'Brown', 'Jones', 'Garcia', 'Miller', 'Davis', 'Rodriguez', 'Martinez',
+	'Hernandez', 'Lopez', 'Wilson', 'Anderson', 'Thomas', 'Taylor', 'Moore', 'Jackson', 'Martin', 'Lee',
+	'Thompson', 'White', 'Harris', 'Sanchez', 'Clark', 'Ramirez', 'Lewis', 'Robinson', 'Walker', 'Young',
+	'Allen', 'King', 'Wright', 'Scott', 'Torres', 'Nguyen', 'Hill', 'Flores', 'Green', 'Adams',
+	'Nelson', 'Baker', 'Hall', 'Rivera', 'Campbell', 'Mitchell', 'Carter', 'Roberts', 'Gomez', 'Phillips',
+	'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes', 'Stewart', 'Morris'
+];
+
+const locations = [
+	'New York, NY', 'Brooklyn, NY', 'Queens, NY', 'Manhattan, NY', 'Bronx, NY', 'Staten Island, NY',
+	'Jersey City, NJ', 'Hoboken, NJ', 'Newark, NJ', 'Long Island, NY', 'Westchester, NY',
+	'White Plains, NY', 'Yonkers, NY', 'Buffalo, NY', 'Rochester, NY', 'Albany, NY',
+	'Syracuse, NY', 'Poughkeepsie, NY', 'Utica, NY', 'Binghamton, NY',
+	'Paterson, NJ', 'Elizabeth, NJ', 'Edison, NJ', 'Woodbridge, NJ', 'Toms River, NJ',
+	'Camden, NJ', 'Trenton, NJ', 'Clifton, NJ', 'Passaic, NJ', 'Union City, NJ',
+	'Bridgeport, CT', 'New Haven, CT', 'Hartford, CT', 'Stamford, CT', 'Waterbury, CT'
+];
+
+const platforms = [
+	{ name: 'rover', displayName: 'Rover', icon: '🐕', color: '#00B9B4' },
+	{ name: 'taskrabbit', displayName: 'TaskRabbit', icon: '🐰', color: '#00C853' },
+	{ name: 'wyzant', displayName: 'Wyzant', icon: '📚', color: '#8b5cf6' },
+	{ name: 'care', displayName: 'Care.com', icon: '💙', color: '#4A90E2' },
+	{ name: 'thumbtack', displayName: 'Thumbtack', icon: '👍', color: '#009688' },
+	{ name: 'wag', displayName: 'Wag!', icon: '🐾', color: '#FF6B6B' },
+	{ name: 'handy', displayName: 'Handy', icon: '🔧', color: '#FF5722' },
+	{ name: 'sittercity', displayName: 'Sittercity', icon: '🏠', color: '#8B5CF6' },
+	{ name: 'petbacker', displayName: 'PetBacker', icon: '🐶', color: '#FF9800' },
+	{ name: 'varsitytutors', displayName: 'Varsity Tutors', icon: '🎓', color: '#2196F3' }
+];
+
+const petCareSpecialties = [
+	['Dog walking', 'Pet sitting', 'Dog', 'Pet care'],
+	['Pet Sitting', 'Dog Walking', 'Cat care', 'Pet care'],
+	['dog', 'senior care', 'medication', 'Pet sitting'],
+	['cat', 'small dog', 'feeding', 'Pet care'],
+	['dog', 'walking', 'overnight', 'Pet care'],
+	['senior care', 'medication', 'special needs', 'Pet care'],
+	['Pet boarding', 'Dog walking', 'Day care'],
+	['Cat sitting', 'Pet care', 'Feeding'],
+	['Dog training', 'Pet care', 'Behavior'],
+	['Exotic pets', 'Reptiles', 'Birds']
+];
+
+const handymanSpecialties = [
+	['Handyman', 'Furniture assembly', 'Home repair', 'TV mounting'],
+	['Handyman Services', 'Furniture Assembly', 'TV Mounting', 'Plumbing'],
+	['Handyman', 'Home repair', 'Electrical', 'Plumbing'],
+	['Plumbing', 'Electrical', 'Carpentry', 'Painting'],
+	['TV mounting', 'Shelving', 'Cabinet installation'],
+	['Furniture assembly', 'IKEA assembly', 'Flat pack'],
+	['Painting', 'Wall repair', 'Drywall'],
+	['Electrical work', 'Light fixture installation'],
+	['Plumbing repairs', 'Leak fixes', 'Fixture installation'],
+	['Flooring', 'Tile work', 'Hardwood installation']
+];
+
+const tutoringSpecialties = [
+	['Math Tutoring', 'Science Tutoring', 'Test Prep', 'Tutoring'],
+	['Math Tutoring', 'SAT Prep', 'ACT Prep', 'Test Prep'],
+	['English', 'Reading', 'Writing', 'Language'],
+	['Coding', 'Programming', 'Computer science'],
+	['Spanish', 'French', 'Language tutoring'],
+	['Physics', 'Chemistry', 'Biology'],
+	['History', 'Social studies', 'Essay writing'],
+	['Music lessons', 'Piano', 'Guitar'],
+	['Art tutoring', 'Drawing', 'Painting'],
+	['Test prep', 'GRE', 'GMAT', 'LSAT']
+];
+
+const cleaningSpecialties = [
+	['House cleaning', 'Deep cleaning', 'Organizing'],
+	['Deep cleaning', 'Move-in/out cleaning'],
+	['Regular cleaning', 'Weekly maintenance'],
+	['Window cleaning', 'Exterior cleaning'],
+	['Organizing', 'Decluttering', 'Storage solutions'],
+	['Office cleaning', 'Commercial cleaning'],
+	['Laundry services', 'Ironing'],
+	['Kitchen deep clean', 'Bathroom cleaning'],
+	['Post-construction cleanup'],
+	['Eco-friendly cleaning']
+];
+
+const otherSpecialties = [
+	['Moving', 'Heavy lifting', 'Packing'],
+	['Childcare', 'Babysitting', 'Nanny services'],
+	['Event planning', 'Party planning'],
+	['Yard work', 'Landscaping', 'Gardening'],
+	['Personal shopping', 'Errands'],
+	['Pet grooming', 'Dog grooming']
+];
+
+function generateProviders(): Provider[] {
+	const providers: Provider[] = [];
+	let idCounter = 1;
+
+	// Generate 25 pet care providers (Rover, Wag, PetBacker, Sittercity)
+	for (let i = 0; i < 25; i++) {
+		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+		const name = `${firstName} ${lastName.charAt(0)}.`;
+		const platform = ['rover', 'wag', 'petbacker', 'sittercity'][i % 4];
+		const platformData = platforms.find(p => p.name === platform)!;
+		
+		providers.push({
+			id: String(idCounter++),
+			name,
+			platform,
+			platformName: platformData.displayName,
+			platformIcon: platformData.icon,
+			platformColor: platformData.color,
+			rating: randomRating(4.3, 5.0),
+			reviews: randomReviews(15, 250),
+			price: randomPrice(20, 55),
+			priceUnit: Math.random() > 0.5 ? 'hour' : 'day',
+			location: locations[Math.floor(Math.random() * locations.length)],
+			specialties: petCareSpecialties[i % petCareSpecialties.length],
+			verified: Math.random() > 0.2,
+			responseTime: ['usually within 1 hour', 'usually within 30 minutes', 'usually within 2 hours'][Math.floor(Math.random() * 3)],
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i}`,
+			bio: `Experienced pet care provider specializing in ${petCareSpecialties[i % petCareSpecialties.length][0]}. Dedicated to providing the best care for your furry friends.`
+		});
+	}
+
+	// Generate 20 handyman providers (TaskRabbit, Thumbtack, Handy)
+	for (let i = 0; i < 20; i++) {
+		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+		const name = `${firstName} ${lastName.charAt(0)}.`;
+		const platform = ['taskrabbit', 'thumbtack', 'handy'][i % 3];
+		const platformData = platforms.find(p => p.name === platform)!;
+		
+		providers.push({
+			id: String(idCounter++),
+			name,
+			platform,
+			platformName: platformData.displayName,
+			platformIcon: platformData.icon,
+			platformColor: platformData.color,
+			rating: randomRating(4.2, 5.0),
+			reviews: randomReviews(20, 300),
+			price: randomPrice(40, 80),
+			priceUnit: 'hour',
+			location: locations[Math.floor(Math.random() * locations.length)],
+			specialties: handymanSpecialties[i % handymanSpecialties.length],
+			verified: Math.random() > 0.15,
+			responseTime: ['usually within 1 hour', 'usually within 30 minutes', 'usually within 2 hours'][Math.floor(Math.random() * 3)],
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 100}`,
+			bio: `Professional handyman with expertise in ${handymanSpecialties[i % handymanSpecialties.length][0]}. Reliable, skilled, and ready to help!`
+		});
+	}
+
+	// Generate 15 tutoring providers (Wyzant, Varsity Tutors, Care.com)
+	for (let i = 0; i < 15; i++) {
+		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+		const name = `${firstName} ${lastName.charAt(0)}.`;
+		const platform = ['wyzant', 'varsitytutors', 'care'][i % 3];
+		const platformData = platforms.find(p => p.name === platform)!;
+		
+		providers.push({
+			id: String(idCounter++),
+			name,
+			platform,
+			platformName: platformData.displayName,
+			platformIcon: platformData.icon,
+			platformColor: platformData.color,
+			rating: randomRating(4.4, 5.0),
+			reviews: randomReviews(10, 200),
+			price: randomPrice(30, 70),
+			priceUnit: 'hour',
+			location: locations[Math.floor(Math.random() * locations.length)],
+			specialties: tutoringSpecialties[i % tutoringSpecialties.length],
+			verified: Math.random() > 0.2,
+			responseTime: ['usually within 2 hours', 'usually within 3 hours', 'usually within 1 hour'][Math.floor(Math.random() * 3)],
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 200}`,
+			bio: `Expert tutor specializing in ${tutoringSpecialties[i % tutoringSpecialties.length][0]}. Helping students achieve their academic goals.`
+		});
+	}
+
+	// Generate 12 cleaning providers (Care.com, Handy, Thumbtack)
+	for (let i = 0; i < 12; i++) {
+		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+		const name = `${firstName} ${lastName.charAt(0)}.`;
+		const platform = ['care', 'handy', 'thumbtack'][i % 3];
+		const platformData = platforms.find(p => p.name === platform)!;
+		
+		providers.push({
+			id: String(idCounter++),
+			name,
+			platform,
+			platformName: platformData.displayName,
+			platformIcon: platformData.icon,
+			platformColor: platformData.color,
+			rating: randomRating(4.3, 5.0),
+			reviews: randomReviews(18, 180),
+			price: randomPrice(25, 60),
+			priceUnit: 'hour',
+			location: locations[Math.floor(Math.random() * locations.length)],
+			specialties: cleaningSpecialties[i % cleaningSpecialties.length],
+			verified: Math.random() > 0.25,
+			responseTime: ['usually within 2 hours', 'usually within 1 hour'][Math.floor(Math.random() * 2)],
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 300}`,
+			bio: `Professional cleaner specializing in ${cleaningSpecialties[i % cleaningSpecialties.length][0]}. Attention to detail and reliable service.`
+		});
+	}
+
+	// Generate 10 other service providers (moving, childcare, etc.)
+	for (let i = 0; i < 10; i++) {
+		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
+		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
+		const name = `${firstName} ${lastName.charAt(0)}.`;
+		const platform = platforms[Math.floor(Math.random() * platforms.length)];
+		
+		providers.push({
+			id: String(idCounter++),
+			name,
+			platform: platform.name,
+			platformName: platform.displayName,
+			platformIcon: platform.icon,
+			platformColor: platform.color,
+			rating: randomRating(4.2, 5.0),
+			reviews: randomReviews(12, 220),
+			price: randomPrice(30, 75),
+			priceUnit: Math.random() > 0.3 ? 'hour' : 'day',
+			location: locations[Math.floor(Math.random() * locations.length)],
+			specialties: otherSpecialties[i % otherSpecialties.length],
+			verified: Math.random() > 0.3,
+			responseTime: ['usually within 1 hour', 'usually within 2 hours', 'usually within 3 hours'][Math.floor(Math.random() * 3)],
+			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 400}`,
+			bio: `Professional service provider specializing in ${otherSpecialties[i % otherSpecialties.length][0]}. Quality service you can trust.`
+		});
+	}
+
+	return providers;
+}
+
+export const PROVIDERS: Provider[] = generateProviders();
 
 // Helper function to filter providers based on search criteria
 export function filterProviders(
@@ -311,4 +352,3 @@ export function filterProviders(
 		return true;
 	});
 }
-
