@@ -303,14 +303,15 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 
 					// Generate coordinates relative to user location if available, otherwise use provider's coordinates
 					if (userLocation) {
-						// Generate coordinates within a reasonable radius from user location
+						// Generate coordinates within a FIXED maximum radius from user location
+						// This ensures providers have consistent distances regardless of the current filter radius
 						// Use the provider's ID to create consistent but varied distances (deterministic randomness)
 						const providerIdNum = parseInt(provider.id) || 0;
 						const seed = providerIdNum * 137.508; // Use golden angle for good distribution
 						
-						// Determine max radius - use mapRadius for interactive map, otherwise use searchQuery.radius
-						const activeRadius = userLocation ? mapRadius : (searchQuery.radius && searchQuery.radius !== '100' ? parseFloat(searchQuery.radius) : 50);
-						const maxRadiusMiles = activeRadius * 1.2; // Generate slightly beyond search radius for variety
+						// Always generate providers up to 100 miles (maximum range) regardless of current filter
+						// The filtering will happen later based on the selected radius
+						const maxRadiusMiles = 100; // Fixed maximum generation radius
 						
 						// Generate distance between 0.5 and maxRadiusMiles using seeded random
 						const normalizedSeed = (Math.sin(seed) + 1) / 2; // Convert to 0-1 range
