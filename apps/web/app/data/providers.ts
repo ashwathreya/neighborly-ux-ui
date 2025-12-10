@@ -132,7 +132,40 @@ const platforms = [
 	
 	// Cleaning Services
 	{ name: 'merrymaids', displayName: 'Merry Maids', icon: '🧹', color: '#4CAF50' },
-	{ name: 'mollymaid', displayName: 'Molly Maid', icon: '⭐', color: '#FF9800' }
+	{ name: 'mollymaid', displayName: 'Molly Maid', icon: '⭐', color: '#FF9800' },
+	
+	// Additional Pet Care Platforms
+	{ name: 'pawshake', displayName: 'Pawshake', icon: '🐾', color: '#FF6B9D' },
+	{ name: 'barkly', displayName: 'Barkly', icon: '🐕', color: '#00B8A9' },
+	{ name: 'petcoach', displayName: 'PetCoach', icon: '🏋️', color: '#FF6F00' },
+	{ name: 'petproconnect', displayName: 'PetPro Connect', icon: '🔗', color: '#795548' },
+	
+	// Additional Handyman Platforms
+	{ name: 'craftjack', displayName: 'CraftJack', icon: '🔨', color: '#607D8B' },
+	{ name: 'fixr', displayName: 'Fixr', icon: '🔧', color: '#9E9E9E' },
+	{ name: 'improvenet', displayName: 'ImproveNet', icon: '🏗️', color: '#795548' },
+	{ name: 'networx', displayName: 'Networx', icon: '🌐', color: '#00BCD4' },
+	
+	// Additional Tutoring Platforms
+	{ name: 'clubz', displayName: 'Club Z!', icon: '🌟', color: '#E91E63' },
+	{ name: 'mathnasium', displayName: 'Mathnasium', icon: '🔢', color: '#F44336' },
+	{ name: 'kumon', displayName: 'Kumon', icon: '📐', color: '#2196F3' },
+	{ name: 'readingegg', displayName: 'Reading Eggs', icon: '🥚', color: '#FF9800' },
+	
+	// Event Planning Platforms
+	{ name: 'eventbrite', displayName: 'Eventbrite', icon: '🎫', color: '#FF5722' },
+	{ name: 'gigster', displayName: 'Gigster', icon: '🎭', color: '#9C27B0' },
+	{ name: 'theknot', displayName: 'The Knot', icon: '💍', color: '#E91E63' },
+	
+	// Additional Service Platforms
+	{ name: 'fiverr', displayName: 'Fiverr', icon: '💼', color: '#1DBF73' },
+	{ name: 'upwork', displayName: 'Upwork', icon: '💻', color: '#14A800' },
+	{ name: 'guru', displayName: 'Guru', icon: '🧘', color: '#6366F1' },
+	{ name: 'freelancer', displayName: 'Freelancer', icon: '⚡', color: '#29B2FE' },
+	
+	// Childcare Platforms
+	{ name: 'urbansitter', displayName: 'UrbanSitter', icon: '👶', color: '#FF6B6B' },
+	{ name: 'bamboohr', displayName: 'BambooHR', icon: '🎋', color: '#00C853' }
 ];
 
 const petCareSpecialties = [
@@ -201,10 +234,10 @@ function generateProviders(): Provider[] {
 	let idCounter = 1;
 
 	// Pet care platforms
-	const petCarePlatforms = ['rover', 'wag', 'petbacker', 'sittercity', 'holidog', 'trustedhousesitters', 'care'];
+	const petCarePlatforms = ['rover', 'wag', 'petbacker', 'sittercity', 'holidog', 'trustedhousesitters', 'care', 'pawshake', 'barkly', 'petcoach', 'petproconnect'];
 	
-	// Generate 30 pet care providers across all pet platforms
-	for (let i = 0; i < 30; i++) {
+	// Generate 50 pet care providers across all pet platforms
+	for (let i = 0; i < 50; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
@@ -243,10 +276,10 @@ function generateProviders(): Provider[] {
 	}
 
 	// Handyman platforms
-	const handymanPlatforms = ['taskrabbit', 'thumbtack', 'handy', 'angi', 'homeadvisor', 'porch', 'takl', 'care'];
+	const handymanPlatforms = ['taskrabbit', 'thumbtack', 'handy', 'angi', 'homeadvisor', 'porch', 'takl', 'care', 'craftjack', 'fixr', 'improvenet', 'networx'];
 	
-	// Generate 25 handyman providers across all handyman platforms
-	for (let i = 0; i < 25; i++) {
+	// Generate 35 handyman providers across all handyman platforms
+	for (let i = 0; i < 35; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
@@ -287,11 +320,11 @@ function generateProviders(): Provider[] {
 	const tutoringPlatforms = [
 		'wyzant', 'tutorcom', 'preply', 'varsitytutors', 'skooli', 'tutorme', 'chegg', 
 		'superprof', 'italki', 'khanacademy', 'brighterly', 'booknook', 'princetonreview',
-		'kaplan', 'sylvan', 'huntington', 'revolutionprep', 'etutorworld'
+		'kaplan', 'sylvan', 'huntington', 'revolutionprep', 'etutorworld', 'clubz', 'mathnasium', 'kumon', 'readingegg'
 	];
 	
-	// Generate 20 tutoring providers across all tutoring platforms
-	for (let i = 0; i < 20; i++) {
+	// Generate 30 tutoring providers across all tutoring platforms
+	for (let i = 0; i < 30; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
@@ -329,10 +362,10 @@ function generateProviders(): Provider[] {
 	}
 
 	// Cleaning platforms
-	const cleaningPlatforms = ['care', 'handy', 'thumbtack', 'merrymaids', 'mollymaid', 'taskrabbit'];
+	const cleaningPlatforms = ['care', 'handy', 'thumbtack', 'merrymaids', 'mollymaid', 'taskrabbit', 'fiverr', 'upwork'];
 	
-	// Generate 15 cleaning providers across all cleaning platforms
-	for (let i = 0; i < 15; i++) {
+	// Generate 20 cleaning providers across all cleaning platforms
+	for (let i = 0; i < 20; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
@@ -372,8 +405,8 @@ function generateProviders(): Provider[] {
 	// Moving platforms
 	const movingPlatforms = ['taskrabbit', 'thumbtack', 'uhaul', 'dolly', 'care'];
 	
-	// Generate 8 moving service providers
-	for (let i = 0; i < 8; i++) {
+	// Generate 10 moving service providers
+	for (let i = 0; i < 10; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
@@ -410,9 +443,9 @@ function generateProviders(): Provider[] {
 		});
 	}
 
-	// Generate 4 childcare providers (on Care.com, Sittercity, Thumbtack)
-	const childcarePlatforms = ['care', 'sittercity', 'thumbtack'];
-	for (let i = 0; i < 4; i++) {
+	// Generate 10 childcare providers (on Care.com, Sittercity, Thumbtack, UrbanSitter)
+	const childcarePlatforms = ['care', 'sittercity', 'thumbtack', 'urbansitter'];
+	for (let i = 0; i < 10; i++) {
 		const firstName = firstNames[Math.floor(Math.random() * firstNames.length)];
 		const lastName = lastNames[Math.floor(Math.random() * lastNames.length)];
 		const name = `${firstName} ${lastName.charAt(0)}.`;
@@ -478,20 +511,18 @@ export function filterProviders(
 			if (!matchesServiceType) return false;
 		}
 
+		// Check if location is a zip code - if so, skip all location-based filtering
+		const isZipCode = filters.location ? /^\d{5}$/.test(filters.location.trim()) || /^\d+$/.test(filters.location.trim()) : false;
+
 		// Location filter - Skip zip code filtering (zip codes are numeric, locations are city names)
 		// Instead, we'll show all providers and calculate distances from the zip code
 		// Only filter if the location string matches a city/state name
-		if (filters.location) {
+		if (filters.location && !isZipCode) {
 			const locationLower = filters.location.toLowerCase().trim();
-			// Check if it's a zip code (5 digits) or just numbers - if so, don't filter by location
-			const isZipCode = /^\d{5}$/.test(locationLower) || /^\d+$/.test(locationLower);
-			if (!isZipCode && provider.location.toLowerCase().includes(locationLower)) {
-				// City/state name match - allow it
-			} else if (!isZipCode) {
+			if (!provider.location.toLowerCase().includes(locationLower)) {
 				// Not a zip code and doesn't match - filter out
 				return false;
 			}
-			// If it's a zip code, don't filter - we'll show all and sort by distance
 		}
 
 		// Platform filter
@@ -512,12 +543,12 @@ export function filterProviders(
 			if (provider.price < filters.minPrice) return false;
 		}
 
-		// Search keyword filter
+		// Search keyword filter - Skip location matching when zip code is used
 		if (filters.searchKeyword) {
 			const keywordLower = filters.searchKeyword.toLowerCase();
 			const matchesKeyword =
 				provider.name.toLowerCase().includes(keywordLower) ||
-				provider.location.toLowerCase().includes(keywordLower) ||
+				(!isZipCode && provider.location.toLowerCase().includes(keywordLower)) || // Only match location if not zip code
 				provider.specialties.some((spec) => spec.toLowerCase().includes(keywordLower)) ||
 				provider.bio?.toLowerCase().includes(keywordLower);
 			if (!matchesKeyword) return false;
