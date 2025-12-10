@@ -277,9 +277,22 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 						externalUrl: provider.externalUrl || `https://${provider.platform}.com/profile/${provider.name}`,
 					};
 
-					// Add distance and coordinates if user location is available
-					if (userLocation) {
-						const offsetLat = (Math.random() - 0.5) * 0.2; // ~10 miles
+					// Use provider's coordinates if available, otherwise generate from user location
+					if (provider.coordinates) {
+						searchResult.coordinates = provider.coordinates;
+						// Calculate distance from user location if available
+						if (userLocation) {
+							const distance = calculateDistance(
+								userLocation.lat,
+								userLocation.lng,
+								provider.coordinates.lat,
+								provider.coordinates.lng
+							);
+							searchResult.distance = distance;
+						}
+					} else if (userLocation) {
+						// Fallback: generate random coordinates near user location
+						const offsetLat = (Math.random() - 0.5) * 0.2;
 						const offsetLng = (Math.random() - 0.5) * 0.2;
 						const coords = {
 							lat: userLocation.lat + offsetLat,
@@ -395,10 +408,23 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	// Sort results
 	const sortedResults = [...filteredResults].sort((a, b) => {
 		if (sortBy === 'rating') return parseFloat(b.rating) - parseFloat(a.rating);
+		if (sortBy === 'distance') {
+			// Sort by distance (nearest first), fallback to rating if distance not available
+			if (a.distance !== undefined && b.distance !== undefined) {
+				return a.distance - b.distance;
+			}
+			if (a.distance !== undefined) return -1;
+			if (b.distance !== undefined) return 1;
+			return parseFloat(b.rating) - parseFloat(a.rating);
+		}
 		if (sortBy === 'price-low') return a.price - b.price;
 		if (sortBy === 'price-high') return b.price - a.price;
 		if (sortBy === 'reviews') return b.reviews - a.reviews;
-		return 0; // recommended (default order)
+		// Recommended: sort by distance if zip code entered, otherwise by rating
+		if (userLocation && a.distance !== undefined && b.distance !== undefined) {
+			return a.distance - b.distance; // Closest first
+		}
+		return parseFloat(b.rating) - parseFloat(a.rating); // Highest rated first
 	});
 
 	// Get all unique specialties for filter
@@ -982,6 +1008,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 								}}
 							>
 								<option value="recommended">Recommended</option>
+								{userLocation && <option value="distance">Distance: Nearest First</option>}
 								<option value="rating">Highest Rated</option>
 								<option value="price-low">Price: Low to High</option>
 								<option value="price-high">Price: High to Low</option>
@@ -1118,6 +1145,202 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 							)}
 						</div>
 					</div>
+
+					{/* Main Map - Show when zip code is entered */}
+					{userLocation && sortedResults.length > 0 && (
+						<div
+							style={{
+								background: 'white',
+								borderRadius: '20px',
+								padding: '24px',
+								boxShadow: '0 8px 24px rgba(0,0,0,0.08)',
+								marginBottom: '24px'
+							}}
+						>
+							<h3 style={{ fontSize: '20px', fontWeight: 700, marginBottom: '16px', color: '#111827' }}>
+								📍 Provider Locations from {searchQuery.location}
+							</h3>
+							<div
+								style={{
+									height: '400px',
+									borderRadius: '12px',
+									overflow: 'hidden',
+									position: 'relative',
+									background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 50%, #fce7f3 100%)',
+									border: '2px solid #e5e7eb',
+									display: 'flex',
+									alignItems: 'center',
+									justifyContent: 'center'
+								}}
+							>
+								{/* Mock Map with Provider Markers */}
+								<svg
+									width="100%"
+									height="100%"
+									style={{ position: 'absolute', top: 0, left: 0 }}
+									viewBox="0 0 800 400"
+								>
+									{/* Background grid */}
+									<defs>
+										<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+											<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
+										</pattern>
+									</defs>
+									<rect width="100%" height="100%" fill="url(#grid)" />
+									
+									{/* Draw lines from user location to each provider */}
+									{sortedResults.slice(0, 20).map((result, idx) => {
+										if (!result.coordinates || !userLocation) return null;
+										
+										// Convert lat/lng to SVG coordinates (rough approximation for NYC area)
+										const centerX = 400; // Center of map
+										const centerY = 200;
+										const scale = 3000; // Scale factor
+										
+										const userX = centerX;
+										const userY = centerY;
+										
+										const latDiff = result.coordinates.lat - userLocation.lat;
+										const lngDiff = result.coordinates.lng - userLocation.lng;
+										
+										const providerX = centerX + (lngDiff * scale);
+										const providerY = centerY - (latDiff * scale);
+										
+										return (
+											<g key={result.id}>
+												{/* Line from user to provider */}
+												<line
+													x1={userX}
+													y1={userY}
+													x2={providerX}
+													y2={providerY}
+													stroke={result.platformColor}
+													strokeWidth="2"
+													opacity="0.2"
+													strokeDasharray="4,4"
+												/>
+												{/* Provider marker */}
+												<circle
+													cx={providerX}
+													cy={providerY}
+													r="6"
+													fill={result.platformColor}
+													stroke="white"
+													strokeWidth="2"
+												/>
+												{/* Distance label */}
+												{result.distance !== undefined && (
+													<text
+														x={providerX + 10}
+														y={providerY - 10}
+														fontSize="12"
+														fill={result.platformColor}
+														fontWeight="600"
+														style={{ pointerEvents: 'none' }}
+													>
+														{result.distance}mi
+													</text>
+												)}
+											</g>
+										);
+									})}
+									
+									{/* User location marker (center) */}
+									<g>
+										<circle
+											cx="400"
+											cy="200"
+											r="10"
+											fill="#ef4444"
+											stroke="white"
+											strokeWidth="3"
+										/>
+										<circle
+											cx="400"
+											cy="200"
+											r="10"
+											fill="none"
+											stroke="#ef4444"
+											strokeWidth="2"
+											opacity="0.5"
+											style={{ animation: 'pulse 2s infinite' }}
+										/>
+										<text
+											x="400"
+											y="225"
+											fontSize="14"
+											fill="#ef4444"
+											fontWeight="700"
+											textAnchor="middle"
+											style={{ pointerEvents: 'none' }}
+										>
+											You ({searchQuery.location})
+										</text>
+									</g>
+								</svg>
+								
+								{/* Legend */}
+								<div
+									style={{
+										position: 'absolute',
+										bottom: '16px',
+										left: '16px',
+										background: 'rgba(255, 255, 255, 0.95)',
+										padding: '12px 16px',
+										borderRadius: '8px',
+										boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+										backdropFilter: 'blur(10px)',
+										fontSize: '12px',
+										display: 'flex',
+										flexDirection: 'column',
+										gap: '8px'
+									}}
+								>
+									<div style={{ fontWeight: 700, marginBottom: '4px', color: '#111827' }}>Map Legend</div>
+									<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+										<div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#ef4444', border: '2px solid white' }}></div>
+										<span>Your location ({searchQuery.location})</span>
+									</div>
+									<div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+										<div style={{ width: '12px', height: '12px', borderRadius: '50%', background: '#6366f1', border: '2px solid white' }}></div>
+										<span>Providers ({sortedResults.length} shown)</span>
+									</div>
+									<div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
+										Distances calculated from your zip code
+									</div>
+								</div>
+								
+								{/* Stats overlay */}
+								<div
+									style={{
+										position: 'absolute',
+										top: '16px',
+										right: '16px',
+										background: 'rgba(255, 255, 255, 0.95)',
+										padding: '12px 16px',
+										borderRadius: '8px',
+										boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+										backdropFilter: 'blur(10px)',
+										fontSize: '13px',
+										display: 'flex',
+										flexDirection: 'column',
+										gap: '4px'
+									}}
+								>
+									<div style={{ fontWeight: 700, color: '#111827' }}>Search Radius</div>
+									<div style={{ fontSize: '18px', fontWeight: 800, color: '#6366f1' }}>
+										{Math.max(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0))} mi
+									</div>
+									<div style={{ fontSize: '11px', color: '#6b7280' }}>
+										{Math.min(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0))} - {Math.max(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0))} mi range
+									</div>
+								</div>
+							</div>
+							<p style={{ marginTop: '12px', fontSize: '13px', color: '#6b7280', textAlign: 'center' }}>
+								Showing {sortedResults.length} providers within your search area. Click on provider cards below to see details.
+							</p>
+						</div>
+					)}
 
 					{/* Results */}
 					{isLoading ? (
@@ -1352,7 +1575,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 									</div>
 
 									{/* Mini Map */}
-									{result.coordinates && userLocation && (
+									{result.coordinates && (
 										<div style={{ marginBottom: '12px' }}>
 											<div
 												style={{

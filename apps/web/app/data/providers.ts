@@ -48,14 +48,43 @@ const lastNames = [
 	'Evans', 'Turner', 'Diaz', 'Parker', 'Cruz', 'Edwards', 'Collins', 'Reyes', 'Stewart', 'Morris'
 ];
 
+// Location data with coordinates (approximate lat/lng for NYC area)
 const locations = [
-	'New York, NY', 'Brooklyn, NY', 'Queens, NY', 'Manhattan, NY', 'Bronx, NY', 'Staten Island, NY',
-	'Jersey City, NJ', 'Hoboken, NJ', 'Newark, NJ', 'Long Island, NY', 'Westchester, NY',
-	'White Plains, NY', 'Yonkers, NY', 'Buffalo, NY', 'Rochester, NY', 'Albany, NY',
-	'Syracuse, NY', 'Poughkeepsie, NY', 'Utica, NY', 'Binghamton, NY',
-	'Paterson, NJ', 'Elizabeth, NJ', 'Edison, NJ', 'Woodbridge, NJ', 'Toms River, NJ',
-	'Camden, NJ', 'Trenton, NJ', 'Clifton, NJ', 'Passaic, NJ', 'Union City, NJ',
-	'Bridgeport, CT', 'New Haven, CT', 'Hartford, CT', 'Stamford, CT', 'Waterbury, CT'
+	{ name: 'New York, NY', lat: 40.7128, lng: -74.0060 },
+	{ name: 'Brooklyn, NY', lat: 40.6782, lng: -73.9442 },
+	{ name: 'Queens, NY', lat: 40.7282, lng: -73.7949 },
+	{ name: 'Manhattan, NY', lat: 40.7831, lng: -73.9712 },
+	{ name: 'Bronx, NY', lat: 40.8448, lng: -73.8648 },
+	{ name: 'Staten Island, NY', lat: 40.5795, lng: -74.1502 },
+	{ name: 'Jersey City, NJ', lat: 40.7178, lng: -74.0431 },
+	{ name: 'Hoboken, NJ', lat: 40.7439, lng: -74.0324 },
+	{ name: 'Newark, NJ', lat: 40.7357, lng: -74.1724 },
+	{ name: 'Long Island, NY', lat: 40.7891, lng: -73.1350 },
+	{ name: 'Westchester, NY', lat: 41.1220, lng: -73.7949 },
+	{ name: 'White Plains, NY', lat: 41.0340, lng: -73.7629 },
+	{ name: 'Yonkers, NY', lat: 40.9312, lng: -73.8988 },
+	{ name: 'Buffalo, NY', lat: 42.8864, lng: -78.8784 },
+	{ name: 'Rochester, NY', lat: 43.1566, lng: -77.6088 },
+	{ name: 'Albany, NY', lat: 42.6526, lng: -73.7562 },
+	{ name: 'Syracuse, NY', lat: 43.0481, lng: -76.1474 },
+	{ name: 'Poughkeepsie, NY', lat: 41.7004, lng: -73.9210 },
+	{ name: 'Utica, NY', lat: 43.1009, lng: -75.2327 },
+	{ name: 'Binghamton, NY', lat: 42.0987, lng: -75.9180 },
+	{ name: 'Paterson, NJ', lat: 40.9168, lng: -74.1718 },
+	{ name: 'Elizabeth, NJ', lat: 40.6639, lng: -74.2107 },
+	{ name: 'Edison, NJ', lat: 40.5187, lng: -74.4121 },
+	{ name: 'Woodbridge, NJ', lat: 40.5576, lng: -74.2846 },
+	{ name: 'Toms River, NJ', lat: 39.9538, lng: -74.1979 },
+	{ name: 'Camden, NJ', lat: 39.9259, lng: -75.1196 },
+	{ name: 'Trenton, NJ', lat: 40.2206, lng: -74.7597 },
+	{ name: 'Clifton, NJ', lat: 40.8584, lng: -74.1638 },
+	{ name: 'Passaic, NJ', lat: 40.8568, lng: -74.1285 },
+	{ name: 'Union City, NJ', lat: 40.7795, lng: -74.0238 },
+	{ name: 'Bridgeport, CT', lat: 41.1865, lng: -73.1952 },
+	{ name: 'New Haven, CT', lat: 41.3083, lng: -72.9279 },
+	{ name: 'Hartford, CT', lat: 41.7658, lng: -72.6734 },
+	{ name: 'Stamford, CT', lat: 41.0534, lng: -73.5387 },
+	{ name: 'Waterbury, CT', lat: 41.5582, lng: -73.0515 }
 ];
 
 const platforms = [
@@ -193,8 +222,19 @@ function generateProviders(): Provider[] {
 			reviews: randomReviews(15, 250),
 			price: randomPrice(20, 55),
 			priceUnit: Math.random() > 0.5 ? 'hour' : 'day',
-			location: locations[Math.floor(Math.random() * locations.length)],
+			location: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return loc.name;
+			})(),
 			specialties: petCareSpecialties[i % petCareSpecialties.length],
+			coordinates: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				// Add small random offset to make each provider unique
+				return {
+					lat: loc.lat + (Math.random() - 0.5) * 0.1,
+					lng: loc.lng + (Math.random() - 0.5) * 0.1
+				};
+			})(),
 			verified: Math.random() > 0.2,
 			responseTime: ['usually within 1 hour', 'usually within 30 minutes', 'usually within 2 hours'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i}`,
@@ -224,8 +264,18 @@ function generateProviders(): Provider[] {
 			reviews: randomReviews(20, 300),
 			price: randomPrice(40, 80),
 			priceUnit: 'hour',
-			location: locations[Math.floor(Math.random() * locations.length)],
+			location: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return loc.name;
+			})(),
 			specialties: handymanSpecialties[i % handymanSpecialties.length],
+			coordinates: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return {
+					lat: loc.lat + (Math.random() - 0.5) * 0.1,
+					lng: loc.lng + (Math.random() - 0.5) * 0.1
+				};
+			})(),
 			verified: Math.random() > 0.15,
 			responseTime: ['usually within 1 hour', 'usually within 30 minutes', 'usually within 2 hours'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 100}`,
@@ -259,8 +309,18 @@ function generateProviders(): Provider[] {
 			reviews: randomReviews(10, 200),
 			price: randomPrice(30, 70),
 			priceUnit: 'hour',
-			location: locations[Math.floor(Math.random() * locations.length)],
+			location: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return loc.name;
+			})(),
 			specialties: tutoringSpecialties[i % tutoringSpecialties.length],
+			coordinates: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return {
+					lat: loc.lat + (Math.random() - 0.5) * 0.1,
+					lng: loc.lng + (Math.random() - 0.5) * 0.1
+				};
+			})(),
 			verified: Math.random() > 0.2,
 			responseTime: ['usually within 2 hours', 'usually within 3 hours', 'usually within 1 hour'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 200}`,
@@ -290,8 +350,18 @@ function generateProviders(): Provider[] {
 			reviews: randomReviews(18, 180),
 			price: randomPrice(25, 60),
 			priceUnit: 'hour',
-			location: locations[Math.floor(Math.random() * locations.length)],
+			location: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return loc.name;
+			})(),
 			specialties: cleaningSpecialties[i % cleaningSpecialties.length],
+			coordinates: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return {
+					lat: loc.lat + (Math.random() - 0.5) * 0.1,
+					lng: loc.lng + (Math.random() - 0.5) * 0.1
+				};
+			})(),
 			verified: Math.random() > 0.25,
 			responseTime: ['usually within 2 hours', 'usually within 1 hour'][Math.floor(Math.random() * 2)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 300}`,
@@ -321,8 +391,18 @@ function generateProviders(): Provider[] {
 			reviews: randomReviews(12, 220),
 			price: randomPrice(50, 150),
 			priceUnit: Math.random() > 0.5 ? 'hour' : 'job',
-			location: locations[Math.floor(Math.random() * locations.length)],
+			location: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return loc.name;
+			})(),
 			specialties: ['Moving', 'Heavy lifting', 'Packing', 'Relocation'],
+			coordinates: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return {
+					lat: loc.lat + (Math.random() - 0.5) * 0.1,
+					lng: loc.lng + (Math.random() - 0.5) * 0.1
+				};
+			})(),
 			verified: Math.random() > 0.3,
 			responseTime: ['usually within 1 hour', 'usually within 2 hours', 'usually within 3 hours'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 500}`,
@@ -350,8 +430,18 @@ function generateProviders(): Provider[] {
 			reviews: randomReviews(15, 200),
 			price: randomPrice(20, 40),
 			priceUnit: 'hour',
-			location: locations[Math.floor(Math.random() * locations.length)],
+			location: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return loc.name;
+			})(),
 			specialties: ['Childcare', 'Babysitting', 'Nanny services'],
+			coordinates: (() => {
+				const loc = locations[Math.floor(Math.random() * locations.length)];
+				return {
+					lat: loc.lat + (Math.random() - 0.5) * 0.1,
+					lng: loc.lng + (Math.random() - 0.5) * 0.1
+				};
+			})(),
 			verified: Math.random() > 0.25,
 			responseTime: ['usually within 1 hour', 'usually within 2 hours'][Math.floor(Math.random() * 2)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 600}`,
@@ -388,10 +478,20 @@ export function filterProviders(
 			if (!matchesServiceType) return false;
 		}
 
-		// Location filter
+		// Location filter - Skip zip code filtering (zip codes are numeric, locations are city names)
+		// Instead, we'll show all providers and calculate distances from the zip code
+		// Only filter if the location string matches a city/state name
 		if (filters.location) {
-			const locationLower = filters.location.toLowerCase();
-			if (!provider.location.toLowerCase().includes(locationLower)) return false;
+			const locationLower = filters.location.toLowerCase().trim();
+			// Check if it's a zip code (5 digits) or just numbers - if so, don't filter by location
+			const isZipCode = /^\d{5}$/.test(locationLower) || /^\d+$/.test(locationLower);
+			if (!isZipCode && provider.location.toLowerCase().includes(locationLower)) {
+				// City/state name match - allow it
+			} else if (!isZipCode) {
+				// Not a zip code and doesn't match - filter out
+				return false;
+			}
+			// If it's a zip code, don't filter - we'll show all and sort by distance
 		}
 
 		// Platform filter
