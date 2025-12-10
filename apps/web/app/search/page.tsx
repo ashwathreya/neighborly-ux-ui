@@ -1291,6 +1291,28 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										>
 											+
 										</button>
+										{userHasZoomed && (
+											<button
+												onClick={() => {
+													setUserHasZoomed(false);
+													// Auto-zoom will recalculate on next render
+												}}
+												style={{
+													padding: '6px 12px',
+													background: '#6366f1',
+													border: 'none',
+													borderRadius: '6px',
+													cursor: 'pointer',
+													fontSize: '12px',
+													fontWeight: 600,
+													color: 'white',
+													marginLeft: '8px'
+												}}
+												title="Reset to auto-zoom"
+											>
+												Auto
+											</button>
+										)}
 									</div>
 								</div>
 								
