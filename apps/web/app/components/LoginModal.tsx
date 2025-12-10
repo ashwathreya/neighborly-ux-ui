@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { getApiUrl } from '../lib/api';
 
 interface LoginModalProps {
 	isOpen: boolean;
@@ -62,11 +63,11 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 		setStatus(`Connecting to ${provider}...`);
 
 		try {
-			const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+			const base = getApiUrl();
 			const redirectUri = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
 
 			// Initiate OAuth flow
-			const res = await fetch(`${base}/auth/oauth/${provider.toLowerCase()}?redirectUri=${encodeURIComponent(redirectUri)}`, {
+			const res = await fetch(`${base}/api/auth/oauth/${provider.toLowerCase()}?redirectUri=${encodeURIComponent(redirectUri)}`, {
 				method: 'GET',
 				signal: AbortSignal.timeout(5000)
 			});
@@ -122,11 +123,11 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 		}
 
 		try {
-			const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+			const base = getApiUrl();
 
 			// Check if API is reachable
 			try {
-				const healthCheck = await fetch(`${base}/health`, {
+				const healthCheck = await fetch(`${base}/api/health`, {
 					method: 'GET',
 					signal: AbortSignal.timeout(3000)
 				});
@@ -134,14 +135,14 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 					throw new Error('API server is not responding');
 				}
 			} catch (healthError) {
-				setStatus('⚠️ API server is not running. Please make sure the API server is started on port 4000.');
+				setStatus('⚠️ API server is not responding. Please try again.');
 				setIsLoading(false);
 				return;
 			}
 
 			if (mode === 'login') {
 				setStatus('Signing in…');
-				const res = await fetch(`${base}/auth/login`, {
+				const res = await fetch(`${base}/api/auth/login`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ email, password }),
@@ -170,7 +171,7 @@ export function LoginModal({ isOpen, onClose, initialMode = 'login' }: LoginModa
 			} else {
 				// Sign up
 				setStatus('Creating your account…');
-				const res = await fetch(`${base}/auth/register`, {
+				const res = await fetch(`${base}/api/auth/register`, {
 					method: 'POST',
 					headers: { 'Content-Type': 'application/json' },
 					body: JSON.stringify({ name, email, password, role }),

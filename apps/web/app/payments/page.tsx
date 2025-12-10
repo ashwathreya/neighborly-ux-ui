@@ -1,13 +1,14 @@
 'use client';
 import { useState } from 'react';
+import { getApiUrl } from '../lib/api';
 
 export default function PaymentsPage() {
 	const [amount, setAmount] = useState(100);
 	const [clientSecret, setClientSecret] = useState<string | null>(null);
 
 	async function createIntent() {
-		const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-		const res = await fetch(`${base}/payments/intent`, {
+		const base = getApiUrl();
+		const res = await fetch(`${base}/api/payments/intent`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ amount, currency: 'usd' })

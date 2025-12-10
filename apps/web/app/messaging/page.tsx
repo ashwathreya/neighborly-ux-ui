@@ -1,5 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
+import { getApiUrl } from '../lib/api';
 
 type Message = { id: string; from: string; to: string; text: string; createdAt: string };
 
@@ -8,10 +9,10 @@ export default function MessagingPage() {
 	const [text, setText] = useState('');
 
 	useEffect(() => {
-		const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+		const base = getApiUrl();
 		let cancelled = false;
 		async function poll() {
-			const res = await fetch(`${base}/messages`);
+			const res = await fetch(`${base}/api/messages`);
 			if (res.ok) {
 				const data = (await res.json()) as Message[];
 				if (!cancelled) setMessages(data);
@@ -25,8 +26,8 @@ export default function MessagingPage() {
 	}, []);
 
 	async function send() {
-		const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-		await fetch(`${base}/messages`, {
+		const base = getApiUrl();
+		await fetch(`${base}/api/messages`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ from: 'alice', to: 'sam', text })

@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { getApiUrl } from '../lib/api';
 
 export default function ReviewsPage() {
 	const [bookingId, setBookingId] = useState('');
@@ -8,8 +9,8 @@ export default function ReviewsPage() {
 	const [status, setStatus] = useState<string | null>(null);
 
 	async function submit() {
-		const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-		const res = await fetch(`${base}/reviews`, {
+		const base = getApiUrl();
+		const res = await fetch(`${base}/api/reviews`, {
 			method: 'POST',
 			headers: { 'Content-Type': 'application/json' },
 			body: JSON.stringify({ bookingId, reviewerId: '1', rating, comment })

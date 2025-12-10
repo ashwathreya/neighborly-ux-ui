@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import Link from 'next/link';
+import { getApiUrl } from '../lib/api';
 
 export default function LoginPage() {
 	const [email, setEmail] = useState('');
@@ -13,11 +14,11 @@ export default function LoginPage() {
 		setStatus(null);
 		
 		try {
-			const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+			const base = getApiUrl();
 			
 			// First check if API is reachable
 			try {
-				const healthCheck = await fetch(`${base}/health`, { 
+				const healthCheck = await fetch(`${base}/api/health`, { 
 					method: 'GET',
 					signal: AbortSignal.timeout(3000)
 				});
@@ -25,13 +26,13 @@ export default function LoginPage() {
 					throw new Error('API server is not responding');
 				}
 			} catch (healthError) {
-				setStatus('⚠️ API server is not running. Please make sure the API server is started on port 4000.');
+				setStatus('⚠️ API server is not responding. Please try again.');
 				setIsLoading(false);
 				return;
 			}
 
 			setStatus('Signing in…');
-			const res = await fetch(`${base}/auth/login`, {
+			const res = await fetch(`${base}/api/auth/login`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify({ email }),

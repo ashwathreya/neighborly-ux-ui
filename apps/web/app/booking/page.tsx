@@ -1,6 +1,8 @@
+import { getApiUrl } from '../lib/api';
+
 async function quote() {
-	const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-	const res = await fetch(`${base}/bookings/quote?days=3&baseRate=40`, { cache: 'no-store' });
+	const base = getApiUrl();
+	const res = await fetch(`${base}/api/bookings/quote?days=3&baseRate=40`, { cache: 'no-store' });
 	if (!res.ok) return null;
 	return res.json();
 }

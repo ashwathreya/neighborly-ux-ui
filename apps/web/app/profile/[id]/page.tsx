@@ -1,6 +1,8 @@
+import { getApiUrl } from '../../lib/api';
+
 async function fetchSitter(id: string) {
-	const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-	const res = await fetch(`${base}/sitters/${id}`, { cache: 'no-store' });
+	const base = getApiUrl();
+	const res = await fetch(`${base}/api/sitters/${id}`, { cache: 'no-store' });
 	if (!res.ok) return null;
 	return res.json();
 }

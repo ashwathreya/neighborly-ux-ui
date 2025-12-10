@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
+import { getApiUrl } from '../lib/api';
 
 interface SearchResult {
 	id: string;
@@ -241,7 +242,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		const fetchResults = async () => {
 			setIsLoading(true);
 			try {
-				const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+				const base = getApiUrl();
 				const params = new URLSearchParams({
 					serviceType: searchQuery.serviceType,
 					location: searchQuery.location,
@@ -249,7 +250,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 					endDate: searchQuery.endDate
 				});
 
-				const res = await fetch(`${base}/aggregate/search?${params}`);
+				const res = await fetch(`${base}/api/aggregate/search?${params}`);
 				if (res.ok) {
 					const data = await res.json();
 					let resultsWithDistance = data.results || [];

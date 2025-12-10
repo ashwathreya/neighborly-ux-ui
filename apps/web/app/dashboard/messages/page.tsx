@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { getApiUrl } from '../../lib/api';
 
 type Message = { id: string; from: string; to: string; text: string; createdAt: string };
 
@@ -144,11 +145,11 @@ export default function MessagesPage() {
 		}
 
 		// Optionally still poll for real messages if API is available
-		const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+		const base = getApiUrl();
 		let cancelled = false;
 		async function poll() {
 			try {
-				const res = await fetch(`${base}/messages`);
+				const res = await fetch(`${base}/api/messages`);
 				if (res.ok) {
 					const data = (await res.json()) as Message[];
 					// Only update if we get real messages from API, otherwise keep samples
@@ -197,9 +198,9 @@ export default function MessagesPage() {
 		setText('');
 
 		// Optionally send to API
-		const base = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+		const base = getApiUrl();
 		try {
-			await fetch(`${base}/messages`, {
+			await fetch(`${base}/api/messages`, {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
 				body: JSON.stringify(newMessage)
