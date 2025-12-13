@@ -467,23 +467,27 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		if (verifiedOnly && !result.verified) return false;
 		
 		// Keyword search (using debounced value) - improved matching
-		if (searchKeywordDebounced) {
-			const keywordLower = searchKeywordDebounced.toLowerCase();
-			const keywordWords = keywordLower.split(/\s+/);
-			const resultNameLower = result.name.toLowerCase();
-			const resultSpecialtiesLower = result.specialties.map(s => s.toLowerCase());
+		// Only filter if keyword is provided and not empty
+		if (searchKeywordDebounced && searchKeywordDebounced.trim().length > 0) {
+			const keywordLower = searchKeywordDebounced.toLowerCase().trim();
+			const keywordWords = keywordLower.split(/\s+/).filter(w => w.length > 0);
 			
-			// Check if any word from keyword matches name or specialties
-			const matchesName = keywordWords.some(word => resultNameLower.includes(word));
-			const matchesSpecialties = keywordWords.some(word => 
-				resultSpecialtiesLower.some(spec => spec.includes(word) || word.includes(spec))
-			);
-			
-			// Also check if full keyword matches
-			const fullMatch = resultNameLower.includes(keywordLower) || 
-				resultSpecialtiesLower.some(spec => spec.includes(keywordLower));
-			
-			if (!matchesName && !matchesSpecialties && !fullMatch) return false;
+			if (keywordWords.length > 0) {
+				const resultNameLower = result.name.toLowerCase();
+				const resultSpecialtiesLower = result.specialties.map(s => s.toLowerCase());
+				
+				// Check if any word from keyword matches name or specialties
+				const matchesName = keywordWords.some(word => resultNameLower.includes(word));
+				const matchesSpecialties = keywordWords.some(word => 
+					resultSpecialtiesLower.some(spec => spec.includes(word) || word.includes(spec))
+				);
+				
+				// Also check if full keyword matches
+				const fullMatch = resultNameLower.includes(keywordLower) || 
+					resultSpecialtiesLower.some(spec => spec.includes(keywordLower));
+				
+				if (!matchesName && !matchesSpecialties && !fullMatch) return false;
+			}
 		}
 		
 		// Name search

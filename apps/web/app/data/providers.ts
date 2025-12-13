@@ -502,12 +502,24 @@ export function filterProviders(
 	}
 ): Provider[] {
 	return providers.filter((provider) => {
-		// Service type filter (matches specialties)
-		if (filters.serviceType && filters.serviceType !== 'all') {
-			const serviceTypeLower = filters.serviceType.toLowerCase();
-			const matchesServiceType = provider.specialties.some(
-				(spec) => spec.toLowerCase().includes(serviceTypeLower) || serviceTypeLower.includes(spec.toLowerCase())
-			);
+		// Service type filter (matches specialties) - only apply if serviceType is specified and not 'all'
+		if (filters.serviceType && filters.serviceType !== 'all' && filters.serviceType.trim().length > 0) {
+			const serviceTypeLower = filters.serviceType.toLowerCase().trim();
+			// More lenient matching - check if any specialty contains keywords from service type
+			const serviceKeywords = serviceTypeLower.split(/\s+/);
+			const matchesServiceType = provider.specialties.some((spec) => {
+				const specLower = spec.toLowerCase();
+				return serviceKeywords.some(keyword => 
+					specLower.includes(keyword) || keyword.includes(specLower) ||
+					// Also check common service type mappings
+					(serviceTypeLower.includes('pet') && (specLower.includes('pet') || specLower.includes('dog') || specLower.includes('cat'))) ||
+					(serviceTypeLower.includes('handyman') && (specLower.includes('handyman') || specLower.includes('repair') || specLower.includes('fix'))) ||
+					(serviceTypeLower.includes('tutor') && (specLower.includes('tutor') || specLower.includes('teaching'))) ||
+					(serviceTypeLower.includes('clean') && specLower.includes('clean')) ||
+					(serviceTypeLower.includes('move') && specLower.includes('move')) ||
+					(serviceTypeLower.includes('child') && specLower.includes('child'))
+				);
+			});
 			if (!matchesServiceType) return false;
 		}
 
@@ -544,8 +556,9 @@ export function filterProviders(
 		}
 
 		// Search keyword filter - Skip location matching when zip code is used
-		if (filters.searchKeyword) {
-			const keywordLower = filters.searchKeyword.toLowerCase();
+		// Only filter if keyword is provided and not empty
+		if (filters.searchKeyword && filters.searchKeyword.trim().length > 0) {
+			const keywordLower = filters.searchKeyword.toLowerCase().trim();
 			const matchesKeyword =
 				provider.name.toLowerCase().includes(keywordLower) ||
 				(!isZipCode && provider.location.toLowerCase().includes(keywordLower)) || // Only match location if not zip code
