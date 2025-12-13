@@ -7,6 +7,7 @@ dist
 npm-debug.log*
 yarn-error.log*
 pnpm-lock.yaml
-package-lock.json
+# Allow package-lock.json for Vercel builds
+# package-lock.json
 
 
