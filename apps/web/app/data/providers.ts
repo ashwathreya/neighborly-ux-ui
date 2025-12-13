@@ -18,6 +18,7 @@ export interface Provider {
 	bio?: string;
 	distance?: number;
 	coordinates?: { lat: number; lng: number };
+	portfolio?: string[]; // Array of portfolio image URLs
 }
 
 // Helper function to generate random rating between min and max
@@ -28,6 +29,50 @@ const randomPrice = (min: number, max: number) => Math.round(Math.random() * (ma
 
 // Helper function to generate random reviews
 const randomReviews = (min: number, max: number) => Math.floor(Math.random() * (max - min) + min);
+
+// Helper function to generate portfolio images based on service type
+const generatePortfolioImages = (providerId: string, specialties: string[]): string[] => {
+	const specialty = specialties[0]?.toLowerCase() || 'service';
+	const portfolioImages: string[] = [];
+	
+	// Map service types to image categories
+	const imageCategories: Record<string, number[]> = {
+		'pet': [300, 301, 302, 303, 304, 305], // Dog, cat, pet images
+		'dog': [300, 301, 302, 303, 304, 305],
+		'cat': [306, 307, 308, 309, 310, 311],
+		'handyman': [200, 201, 202, 203, 204, 205], // Tools, construction
+		'repair': [200, 201, 202, 203, 204, 205],
+		'fix': [200, 201, 202, 203, 204, 205],
+		'tutor': [400, 401, 402, 403, 404, 405], // Education, books
+		'teaching': [400, 401, 402, 403, 404, 405],
+		'education': [400, 401, 402, 403, 404, 405],
+		'clean': [500, 501, 502, 503, 504, 505], // Cleaning, house
+		'cleaning': [500, 501, 502, 503, 504, 505],
+		'move': [600, 601, 602, 603, 604, 605], // Moving, truck
+		'moving': [600, 601, 602, 603, 604, 605],
+		'child': [700, 701, 702, 703, 704, 705], // Children, kids
+		'babysitting': [700, 701, 702, 703, 704, 705],
+		'nanny': [700, 701, 702, 703, 704, 705],
+	};
+	
+	// Find matching category
+	let categoryIds = [100, 101, 102, 103, 104, 105]; // Default generic images
+	for (const [key, ids] of Object.entries(imageCategories)) {
+		if (specialty.includes(key)) {
+			categoryIds = ids;
+			break;
+		}
+	}
+	
+	// Generate 6 portfolio images using Picsum with deterministic seeds based on provider ID
+	const providerSeed = parseInt(providerId) || 0;
+	for (let i = 0; i < 6; i++) {
+		const imageId = categoryIds[i % categoryIds.length] + (providerSeed * 10) + i;
+		portfolioImages.push(`https://picsum.photos/seed/${imageId}/400/300`);
+	}
+	
+	return portfolioImages;
+};
 
 const firstNames = [
 	'Sarah', 'Mike', 'Emma', 'James', 'Olivia', 'David', 'Sophia', 'Daniel', 'Emily', 'Michael',
@@ -243,9 +288,11 @@ function generateProviders(): Provider[] {
 		const name = `${firstName} ${lastName.charAt(0)}.`;
 		const platform = petCarePlatforms[i % petCarePlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
+		const providerId = String(idCounter++);
+		const providerSpecialties = petCareSpecialties[i % petCareSpecialties.length];
 		
 		providers.push({
-			id: String(idCounter++),
+			id: providerId,
 			name,
 			platform,
 			platformName: platformData.displayName,
@@ -259,7 +306,7 @@ function generateProviders(): Provider[] {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return loc.name;
 			})(),
-			specialties: petCareSpecialties[i % petCareSpecialties.length],
+			specialties: providerSpecialties,
 			coordinates: (() => {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				// Add small random offset to make each provider unique
@@ -271,7 +318,8 @@ function generateProviders(): Provider[] {
 			verified: Math.random() > 0.2,
 			responseTime: ['usually within 1 hour', 'usually within 30 minutes', 'usually within 2 hours'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i}`,
-			bio: `Experienced pet care provider specializing in ${petCareSpecialties[i % petCareSpecialties.length][0]}. Dedicated to providing the best care for your furry friends.`
+			bio: `Experienced pet care provider specializing in ${providerSpecialties[0]}. Dedicated to providing the best care for your furry friends.`,
+			portfolio: generatePortfolioImages(providerId, providerSpecialties)
 		});
 	}
 
@@ -285,9 +333,11 @@ function generateProviders(): Provider[] {
 		const name = `${firstName} ${lastName.charAt(0)}.`;
 		const platform = handymanPlatforms[i % handymanPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
+		const providerId = String(idCounter++);
+		const providerSpecialties = handymanSpecialties[i % handymanSpecialties.length];
 		
 		providers.push({
-			id: String(idCounter++),
+			id: providerId,
 			name,
 			platform,
 			platformName: platformData.displayName,
@@ -301,7 +351,7 @@ function generateProviders(): Provider[] {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return loc.name;
 			})(),
-			specialties: handymanSpecialties[i % handymanSpecialties.length],
+			specialties: providerSpecialties,
 			coordinates: (() => {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return {
@@ -312,7 +362,8 @@ function generateProviders(): Provider[] {
 			verified: Math.random() > 0.15,
 			responseTime: ['usually within 1 hour', 'usually within 30 minutes', 'usually within 2 hours'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 100}`,
-			bio: `Professional handyman with expertise in ${handymanSpecialties[i % handymanSpecialties.length][0]}. Reliable, skilled, and ready to help!`
+			bio: `Professional handyman with expertise in ${providerSpecialties[0]}. Reliable, skilled, and ready to help!`,
+			portfolio: generatePortfolioImages(providerId, providerSpecialties)
 		});
 	}
 
@@ -331,8 +382,10 @@ function generateProviders(): Provider[] {
 		const platform = tutoringPlatforms[i % tutoringPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
 		
+		const providerId = String(idCounter++);
+		const providerSpecialties = tutoringSpecialties[i % tutoringSpecialties.length];
 		providers.push({
-			id: String(idCounter++),
+			id: providerId,
 			name,
 			platform,
 			platformName: platformData.displayName,
@@ -346,7 +399,7 @@ function generateProviders(): Provider[] {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return loc.name;
 			})(),
-			specialties: tutoringSpecialties[i % tutoringSpecialties.length],
+			specialties: providerSpecialties,
 			coordinates: (() => {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return {
@@ -357,7 +410,8 @@ function generateProviders(): Provider[] {
 			verified: Math.random() > 0.2,
 			responseTime: ['usually within 2 hours', 'usually within 3 hours', 'usually within 1 hour'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 200}`,
-			bio: `Expert tutor specializing in ${tutoringSpecialties[i % tutoringSpecialties.length][0]}. Helping students achieve their academic goals.`
+			bio: `Expert tutor specializing in ${providerSpecialties[0]}. Helping students achieve their academic goals.`,
+			portfolio: generatePortfolioImages(providerId, providerSpecialties)
 		});
 	}
 
@@ -398,7 +452,8 @@ function generateProviders(): Provider[] {
 			verified: Math.random() > 0.25,
 			responseTime: ['usually within 2 hours', 'usually within 1 hour'][Math.floor(Math.random() * 2)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 300}`,
-			bio: `Professional cleaner specializing in ${cleaningSpecialties[i % cleaningSpecialties.length][0]}. Attention to detail and reliable service.`
+			bio: `Professional cleaner specializing in ${providerSpecialties[0]}. Attention to detail and reliable service.`,
+			portfolio: generatePortfolioImages(providerId, providerSpecialties)
 		});
 	}
 
@@ -413,8 +468,10 @@ function generateProviders(): Provider[] {
 		const platform = movingPlatforms[i % movingPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
 		
+		const providerId = String(idCounter++);
+		const providerSpecialties = ['Moving', 'Heavy lifting', 'Packing', 'Relocation'];
 		providers.push({
-			id: String(idCounter++),
+			id: providerId,
 			name,
 			platform: platformData.name,
 			platformName: platformData.displayName,
@@ -428,7 +485,7 @@ function generateProviders(): Provider[] {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return loc.name;
 			})(),
-			specialties: ['Moving', 'Heavy lifting', 'Packing', 'Relocation'],
+			specialties: providerSpecialties,
 			coordinates: (() => {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return {
@@ -439,7 +496,8 @@ function generateProviders(): Provider[] {
 			verified: Math.random() > 0.3,
 			responseTime: ['usually within 1 hour', 'usually within 2 hours', 'usually within 3 hours'][Math.floor(Math.random() * 3)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 500}`,
-			bio: `Professional mover specializing in moving and heavy lifting. Reliable and experienced.`
+			bio: `Professional mover specializing in moving and heavy lifting. Reliable and experienced.`,
+			portfolio: generatePortfolioImages(providerId, providerSpecialties)
 		});
 	}
 
@@ -451,9 +509,11 @@ function generateProviders(): Provider[] {
 		const name = `${firstName} ${lastName.charAt(0)}.`;
 		const platform = childcarePlatforms[i % childcarePlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
+		const providerId = String(idCounter++);
+		const providerSpecialties = ['Childcare', 'Babysitting', 'Nanny services'];
 		
 		providers.push({
-			id: String(idCounter++),
+			id: providerId,
 			name,
 			platform: platformData.name,
 			platformName: platformData.displayName,
@@ -467,7 +527,7 @@ function generateProviders(): Provider[] {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return loc.name;
 			})(),
-			specialties: ['Childcare', 'Babysitting', 'Nanny services'],
+			specialties: providerSpecialties,
 			coordinates: (() => {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return {
@@ -478,7 +538,8 @@ function generateProviders(): Provider[] {
 			verified: Math.random() > 0.25,
 			responseTime: ['usually within 1 hour', 'usually within 2 hours'][Math.floor(Math.random() * 2)],
 			image: `https://api.dicebear.com/7.x/avataaars/svg?seed=${name}${i + 600}`,
-			bio: `Experienced childcare provider specializing in babysitting and nanny services. Trusted and reliable.`
+			bio: `Experienced childcare provider specializing in babysitting and nanny services. Trusted and reliable.`,
+			portfolio: generatePortfolioImages(providerId, providerSpecialties)
 		});
 	}
 

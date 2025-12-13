@@ -42,6 +42,7 @@ interface SearchResult {
 	externalUrl: string;
 	distance?: number;
 	coordinates?: { lat: number; lng: number };
+	portfolio?: string[]; // Array of portfolio image URLs
 }
 
 interface PlatformInfo {

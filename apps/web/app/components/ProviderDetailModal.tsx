@@ -21,6 +21,7 @@ interface SearchResult {
 	externalUrl: string;
 	distance?: number;
 	coordinates?: { lat: number; lng: number };
+	portfolio?: string[]; // Array of portfolio image URLs
 }
 
 interface ProviderDetailModalProps {
@@ -55,12 +56,20 @@ const generateProviderDetails = (provider: SearchResult) => {
 		return `https://source.unsplash.com/400x300/?${encodeURIComponent(query)}&sig=${seed}`;
 	};
 	
-	const portfolioImages = Array.from({ length: 6 }, (_, i) => ({
-		id: i,
-		url: getPortfolioImageUrl(i, provider.specialties[0] || 'service'),
-		title: `Project ${i + 1}`,
-		description: `Completed ${2020 + i} - ${['Excellent work', 'Great service', 'Professional job', 'Amazing results', 'Top quality', 'Outstanding'][i]}`
-	}));
+	// Use portfolio images from provider data if available, otherwise generate them
+	const portfolioImages = provider.portfolio && provider.portfolio.length > 0
+		? provider.portfolio.map((url, i) => ({
+			id: i,
+			url: url,
+			title: `Project ${i + 1}`,
+			description: `Completed ${2020 + i} - ${['Excellent work', 'Great service', 'Professional job', 'Amazing results', 'Top quality', 'Outstanding'][i]}`
+		}))
+		: Array.from({ length: 6 }, (_, i) => ({
+			id: i,
+			url: getPortfolioImageUrl(i, provider.specialties[0] || 'service'),
+			title: `Project ${i + 1}`,
+			description: `Completed ${2020 + i} - ${['Excellent work', 'Great service', 'Professional job', 'Amazing results', 'Top quality', 'Outstanding'][i]}`
+		}));
 	
 	// Generate reviews
 	const reviews = Array.from({ length: Math.min(provider.reviews, 10) }, (_, i) => ({
