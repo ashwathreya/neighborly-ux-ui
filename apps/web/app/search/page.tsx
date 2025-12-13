@@ -1,9 +1,27 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
 import { PROVIDERS, filterProviders, type Provider } from '../data/providers';
+import dynamic from 'next/dynamic';
+
+// Dynamically import Leaflet components to avoid SSR issues
+const LeafletMap = dynamic(() => import('../components/LeafletMap').then(mod => ({ default: mod.LeafletMap })), { 
+	ssr: false,
+	loading: () => (
+		<div style={{ 
+			height: '500px', 
+			display: 'flex', 
+			alignItems: 'center', 
+			justifyContent: 'center',
+			background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 50%, #fce7f3 100%)',
+			borderRadius: '12px'
+		}}>
+			<div style={{ fontSize: '18px', color: '#6b7280' }}>Loading map...</div>
+		</div>
+	)
+});
 
 interface SearchResult {
 	id: string;
@@ -1380,207 +1398,30 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										borderRadius: '12px',
 										overflow: 'hidden',
 										position: 'relative',
-										background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 50%, #fce7f3 100%)',
 										border: '2px solid #e5e7eb',
-										display: 'flex',
-										alignItems: 'center',
-										justifyContent: 'center'
+										background: '#f3f4f6'
 									}}
 								>
-								{/* Mock Map with Provider Markers */}
-								<svg
-									width="100%"
-									height="100%"
-									style={{ position: 'absolute', top: 0, left: 0 }}
-									viewBox="0 0 800 400"
-								>
-									{/* Background grid */}
-									<defs>
-										<pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
-											<path d="M 40 0 L 0 0 0 40" fill="none" stroke="#cbd5e1" strokeWidth="1" opacity="0.3" />
-										</pattern>
-									</defs>
-									<rect width="100%" height="100%" fill="url(#grid)" />
-									
-									{/* Draw search radius circle based on mapRadius */}
-									{userLocation && mapRadius < 100 && (() => {
-										// Convert radius from miles to SVG pixels (scaled by zoom level)
-										// Base scale: 1 mile ≈ 12 pixels, adjusted by zoom
-										const baseScale = 12 * mapZoom;
-										const radiusPixels = mapRadius * baseScale;
-										const centerX = 400;
-										const centerY = 200;
-										return (
-											<>
-												{/* Outer radius circle */}
-												<circle
-													cx={centerX}
-													cy={centerY}
-													r={radiusPixels}
-													fill="rgba(99, 102, 241, 0.05)"
-													stroke="none"
-												/>
-												{/* Radius circle border */}
-												<circle
-													cx={centerX}
-													cy={centerY}
-													r={radiusPixels}
-													fill="none"
-													stroke="#6366f1"
-													strokeWidth="2"
-													strokeDasharray="5,5"
-													opacity="0.6"
-												/>
-												{/* Radius label */}
-												<text
-													x={centerX}
-													y={centerY - radiusPixels - 10}
-													fontSize="14"
-													fill="#6366f1"
-													fontWeight="700"
-													textAnchor="middle"
-													style={{ pointerEvents: 'none' }}
-												>
-													{mapRadius} mi
-												</text>
-											</>
-										);
-									})()}
-									
-									{/* Draw lines from user location to each provider */}
-									{sortedResults.map((result, idx) => {
-										if (!result.coordinates || !userLocation) return null;
-										
-										// Convert lat/lng to SVG coordinates (scaled by zoom level)
-										const centerX = 400; // Center of map
-										const centerY = 200;
-										const baseScale = 3000; // Base scale factor
-										const scale = baseScale * mapZoom; // Apply zoom
-										
-										const userX = centerX;
-										const userY = centerY;
-										
-										const latDiff = result.coordinates.lat - userLocation.lat;
-										const lngDiff = result.coordinates.lng - userLocation.lng;
-										
-										const providerX = centerX + (lngDiff * scale);
-										const providerY = centerY - (latDiff * scale);
-										
-										return (
-											<g key={result.id}>
-												{/* Line from user to provider */}
-												<line
-													x1={userX}
-													y1={userY}
-													x2={providerX}
-													y2={providerY}
-													stroke={result.platformColor}
-													strokeWidth="2"
-													opacity="0.2"
-													strokeDasharray="4,4"
-												/>
-												{/* Clickable provider marker */}
-												<g
-													onClick={() => {
-														setSelectedProvider(result);
-														setIsModalOpen(true);
-													}}
-													onMouseEnter={(e) => {
-														setHoveredProvider(result);
-														// Calculate tooltip position relative to map container
-														const mapContainer = e.currentTarget.closest('[style*="position: relative"]') as HTMLElement;
-														if (mapContainer) {
-															const rect = mapContainer.getBoundingClientRect();
-															// Convert SVG coordinates to screen coordinates
-															const svg = e.currentTarget.ownerSVGElement;
-															if (svg) {
-																const svgRect = svg.getBoundingClientRect();
-																const svgViewBox = svg.viewBox.baseVal;
-																// Calculate position as percentage of SVG viewBox
-																const xPercent = providerX / svgViewBox.width;
-																const yPercent = providerY / svgViewBox.height;
-																// Convert to pixel position in the container
-																setTooltipPosition({
-																	x: xPercent * svgRect.width,
-																	y: yPercent * svgRect.height - 10
-																});
-															}
-														}
-													}}
-													onMouseLeave={() => {
-														setHoveredProvider(null);
-														setTooltipPosition(null);
-													}}
-													style={{ cursor: 'pointer' }}
-												>
-													{/* Invisible larger hit area for easier clicking */}
-													<circle
-														cx={providerX}
-														cy={providerY}
-														r="15"
-														fill="transparent"
-														stroke="none"
-													/>
-													{/* Provider marker */}
-													<circle
-														cx={providerX}
-														cy={providerY}
-														r="6"
-														fill={result.platformColor}
-														stroke="white"
-														strokeWidth="2"
-													/>
-													{/* Distance label */}
-													{result.distance !== undefined && (
-														<text
-															x={providerX + 10}
-															y={providerY - 10}
-															fontSize="12"
-															fill={result.platformColor}
-															fontWeight="600"
-															style={{ pointerEvents: 'none' }}
-														>
-															{result.distance}mi
-														</text>
-													)}
-												</g>
-											</g>
-										);
-									})}
-									
-									{/* User location marker (center) */}
-									<g>
-										<circle
-											cx="400"
-											cy="200"
-											r="10"
-											fill="#ef4444"
-											stroke="white"
-											strokeWidth="3"
+									{/* Interactive Leaflet Map */}
+									{userLocation && (
+										<LeafletMap
+											userLocation={userLocation}
+											userLocationName={userLocationName}
+											providers={sortedResults}
+											mapRadius={mapRadius}
+											mapZoom={mapZoom}
+											searchQueryLocation={searchQuery.location}
+											onProviderClick={(provider) => {
+												setSelectedProvider(provider);
+												setIsModalOpen(true);
+											}}
+											onProviderHover={(provider, position) => {
+												setHoveredProvider(provider);
+												setTooltipPosition(position);
+											}}
+											hoveredProvider={hoveredProvider}
 										/>
-										<circle
-											cx="400"
-											cy="200"
-											r="10"
-											fill="none"
-											stroke="#ef4444"
-											strokeWidth="2"
-											opacity="0.5"
-											style={{ animation: 'pulse 2s infinite' }}
-										/>
-										<text
-											x="400"
-											y="225"
-											fontSize="14"
-											fill="#ef4444"
-											fontWeight="700"
-											textAnchor="middle"
-											style={{ pointerEvents: 'none' }}
-										>
-											You ({searchQuery.location})
-										</text>
-									</g>
-								</svg>
+									)}
 								
 								{/* Tooltip for hovered provider */}
 								{hoveredProvider && tooltipPosition && (
