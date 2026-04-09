@@ -44,6 +44,21 @@ function isUSResult(address: NominatimAddress): boolean {
 	return cc === 'us' || cc === 'usa';
 }
 
+/**
+ * Italy, Germany, and others use 5-digit postal codes like US ZIPs (e.g. IT 07029 = Sardinia).
+ * Nominatim can rank the wrong country first if the query is not restricted.
+ * Longitudes east of ~24°W are not US — blocks EU results even if the API mis-labels country.
+ */
+function isPlausibleUSMapCoordinates(lat: number, lng: number): boolean {
+	if (Number.isNaN(lat) || Number.isNaN(lng)) return false;
+	if (lat < 17 || lat > 72) return false;
+	// Continental US + AK/HI/PR/territories: roughly west of 24°W (excludes Europe/Africa/Mideast)
+	if (lng > -24) return false;
+	// Eastern US ~-67; western AK/Aleutians to ~180
+	if (lng < -179.5) return false;
+	return true;
+}
+
 export type GeocodedMapLocation = {
 	lat: number;
 	lng: number;
@@ -77,6 +92,7 @@ function parseGeocoded(
 	const lat = parseFloat(result.lat);
 	const lng = parseFloat(result.lon);
 	if (Number.isNaN(lat) || Number.isNaN(lng)) return null;
+	if (!isPlausibleUSMapCoordinates(lat, lng)) return null;
 
 	return {
 		lat,
@@ -119,14 +135,14 @@ export async function geocodeLocationForMap(
 
 	const zip5 = normalizeUSZip5(trimmed);
 
-	// --- US ZIP: structured search (avoids matching random house numbers / foreign places)
+	// --- US ZIP: must pin to United States only. Same digits exist as postal codes in IT, DE, etc.
 	if (zip5) {
 		const structured = new URLSearchParams({
 			format: 'json',
 			postalcode: zip5,
-			country: 'United States',
+			countrycodes: 'us',
 			addressdetails: '1',
-			limit: '10',
+			limit: '15',
 		});
 		let response = await fetch(`${NOMINATIM}?${structured}`, {
 			headers: DEFAULT_HEADERS,
@@ -137,13 +153,13 @@ export async function geocodeLocationForMap(
 		let picked = pickFirstUS(data, zip5);
 		if (picked) return picked;
 
-		// Fallback: biased free-text search within the US only
+		// Fallback: explicit US query (postalcode + countrycodes is usually enough)
 		const fallback = new URLSearchParams({
 			format: 'json',
-			q: `${zip5}, United States`,
+			q: `${zip5} USA`,
 			countrycodes: 'us',
 			addressdetails: '1',
-			limit: '10',
+			limit: '15',
 		});
 		response = await fetch(`${NOMINATIM}?${fallback}`, {
 			headers: DEFAULT_HEADERS,

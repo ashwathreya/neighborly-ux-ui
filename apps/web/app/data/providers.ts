@@ -589,6 +589,12 @@ export function filterProviders(
 	filters: {
 		serviceType?: string;
 		location?: string;
+		/**
+		 * When the user typed a city/region that we geocoded to coordinates, do not require
+		 * mock provider `location` strings to contain that text (seed data may not list every city).
+		 * Same idea as ZIP: distance-from-pin handles relevance instead.
+		 */
+		skipLocationSubstringFilter?: boolean;
 		platform?: string;
 		minRating?: number;
 		maxPrice?: number;
@@ -623,13 +629,10 @@ export function filterProviders(
 		// Check if location is a zip code - if so, skip all location-based filtering
 		const isZipCode = filters.location ? /^\d{5}$/.test(filters.location.trim()) || /^\d+$/.test(filters.location.trim()) : false;
 
-		// Location filter - Skip zip code filtering (zip codes are numeric, locations are city names)
-		// Instead, we'll show all providers and calculate distances from the zip code
-		// Only filter if the location string matches a city/state name
-		if (filters.location && !isZipCode) {
+		// Location filter — skip when ZIP (distance-only) or when city was geocoded (seed cities won't match every query)
+		if (filters.location && !isZipCode && !filters.skipLocationSubstringFilter) {
 			const locationLower = filters.location.toLowerCase().trim();
 			if (!provider.location.toLowerCase().includes(locationLower)) {
-				// Not a zip code and doesn't match - filter out
 				return false;
 			}
 		}

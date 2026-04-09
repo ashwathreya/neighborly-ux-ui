@@ -98,6 +98,10 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	const [mapRadius, setMapRadius] = useState<number>(parseFloat(searchParams.radius as string) || 50);
 	const [mapZoom, setMapZoom] = useState<number>(1);
 	const [userHasZoomed, setUserHasZoomed] = useState<boolean>(false); // Track if user manually zoomed
+	/** When geocoding succeeds, equals `searchQuery.location` trim — used so we only skip city-string matching for the current resolved query */
+	const [geocodedLocationQuery, setGeocodedLocationQuery] = useState<string | null>(null);
+	const searchLocationRef = useRef(searchQuery.location);
+	searchLocationRef.current = searchQuery.location;
 
 	// Map keywords to service types with improved matching
 	const getServiceTypeFromKeyword = (keyword: string): string | null => {
@@ -228,42 +232,57 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	}, [searchQuery.serviceType]);
 
 	// Resolve location (US ZIP or city/region) via Nominatim with US bias — avoids ambiguous bare numbers (e.g. 10001 → wrong country)
+	const GEOCODE_DEBOUNCE_MS = 450;
 	useEffect(() => {
+		const raw = searchQuery.location?.trim() ?? '';
+		if (!raw || raw.length < 5) {
+			setUserLocation(null);
+			setUserLocationName(null);
+			setGeocodedLocationQuery(null);
+			return;
+		}
+
+		// Drop stale pin while the query is changing; debounce so we don't geocode partial city names on every keystroke
+		setUserLocation(null);
+		setUserLocationName(null);
+		setGeocodedLocationQuery(null);
+
 		const controller = new AbortController();
-
-		const run = async () => {
-			const raw = searchQuery.location?.trim() ?? '';
-			if (!raw || raw.length < 5) {
-				setUserLocation(null);
-				setUserLocationName(null);
-				return;
-			}
-
-			try {
-				const result = await geocodeLocationForMap(raw, controller.signal);
-				if (controller.signal.aborted) return;
-				if (!result) {
+		const timer = setTimeout(() => {
+			const run = async () => {
+				try {
+					const result = await geocodeLocationForMap(raw, controller.signal);
+					if (controller.signal.aborted) return;
+					if (searchLocationRef.current.trim() !== raw) return;
+					if (!result) {
+						setUserLocation(null);
+						setUserLocationName(null);
+						setGeocodedLocationQuery(null);
+						return;
+					}
+					setUserLocation({ lat: result.lat, lng: result.lng });
+					setUserLocationName({
+						city: result.city,
+						state: result.state,
+						county: result.county,
+						displayLabel: result.displayLabel,
+					});
+					setGeocodedLocationQuery(raw);
+				} catch (error) {
+					if ((error as Error).name === 'AbortError') return;
+					console.error('Geocoding error:', error);
 					setUserLocation(null);
 					setUserLocationName(null);
-					return;
+					setGeocodedLocationQuery(null);
 				}
-				setUserLocation({ lat: result.lat, lng: result.lng });
-				setUserLocationName({
-					city: result.city,
-					state: result.state,
-					county: result.county,
-					displayLabel: result.displayLabel,
-				});
-			} catch (error) {
-				if ((error as Error).name === 'AbortError') return;
-				console.error('Geocoding error:', error);
-				setUserLocation(null);
-				setUserLocationName(null);
-			}
-		};
+			};
+			void run();
+		}, GEOCODE_DEBOUNCE_MS);
 
-		void run();
-		return () => controller.abort();
+		return () => {
+			clearTimeout(timer);
+			controller.abort();
+		};
 	}, [searchQuery.location]);
 
 	// Sync mapRadius with searchQuery.radius when it changes from URL
@@ -316,6 +335,11 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 				const filtered = filterProviders(PROVIDERS, {
 					serviceType: searchQuery.serviceType,
 					location: searchQuery.location,
+					// After geocoding this exact location string, use distance from the pin (seed data doesn't list every US city)
+					skipLocationSubstringFilter:
+						!!userLocation &&
+						geocodedLocationQuery !== null &&
+						geocodedLocationQuery === searchQuery.location.trim(),
 					minRating: minRating,
 					maxPrice: maxPrice,
 					minPrice: minPrice,
@@ -456,7 +480,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		}, 300); // Simulate network delay
 
 		return () => clearTimeout(timer);
-	}, [searchQuery.serviceType, searchQuery.location, searchQuery.radius, minRating, maxPrice, minPrice, searchKeywordDebounced, selectedSpecialties, verifiedOnly, userLocation, mapRadius, userLocationName]);
+	}, [searchQuery.serviceType, searchQuery.location, searchQuery.radius, minRating, maxPrice, minPrice, searchKeywordDebounced, selectedSpecialties, verifiedOnly, userLocation, mapRadius, userLocationName, geocodedLocationQuery]);
 
 	// Reset service search flag when search completes
 	useEffect(() => {
