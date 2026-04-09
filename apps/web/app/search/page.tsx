@@ -1,7 +1,8 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, Suspense } from 'react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
 import { PROVIDERS, filterProviders, type Provider } from '../data/providers';
 import { geocodeLocationForMap } from '../lib/geocoding';
@@ -55,7 +56,8 @@ interface PlatformInfo {
 	count: number;
 }
 
-export default function SearchPage({ searchParams }: { searchParams: Record<string, string | string[] | undefined> }) {
+function SearchPageContent() {
+	const sp = useSearchParams();
 	const [results, setResults] = useState<SearchResult[]>([]);
 	const [platforms, setPlatforms] = useState<PlatformInfo[]>([]);
 	const [groupedResults, setGroupedResults] = useState<Record<string, SearchResult[]>>({});
@@ -83,11 +85,11 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
 	
 	const [searchQuery, setSearchQuery] = useState({
-		serviceType: String(searchParams.serviceType || searchParams.petType || 'all'),
-		location: String(searchParams.location || ''),
-		startDate: String(searchParams.startDate || ''),
-		endDate: String(searchParams.endDate || ''),
-		radius: String(searchParams.radius || '100') // Default to 100 (any distance) if not specified
+		serviceType: String(sp.get('serviceType') || sp.get('petType') || 'all'),
+		location: String(sp.get('location') || ''),
+		startDate: String(sp.get('startDate') || ''),
+		endDate: String(sp.get('endDate') || ''),
+		radius: String(sp.get('radius') || '100'),
 	});
 
 	const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
@@ -97,7 +99,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		county?: string;
 		displayLabel: string;
 	} | null>(null);
-	const [mapRadius, setMapRadius] = useState<number>(parseFloat(searchParams.radius as string) || 50);
+	const [mapRadius, setMapRadius] = useState<number>(() => parseFloat(sp.get('radius') || '50') || 50);
 	/** Actual Leaflet zoom level (updated from map); used for header display */
 	const [mapLeafletZoom, setMapLeafletZoom] = useState<number>(11);
 	const [userHasZoomed, setUserHasZoomed] = useState<boolean>(false); // When true, skip auto fit-to-radius
@@ -2108,5 +2110,29 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 				}
 			`}</style>
 		</div>
+	);
+}
+
+export default function SearchPage() {
+	return (
+		<Suspense
+			fallback={
+				<div
+					style={{
+						minHeight: '70vh',
+						display: 'flex',
+						alignItems: 'center',
+						justifyContent: 'center',
+						fontSize: '17px',
+						color: '#6b7280',
+						background: 'linear-gradient(135deg, #e0e7ff 0%, #ddd6fe 50%, #fce7f3 100%)',
+					}}
+				>
+					Loading search…
+				</div>
+			}
+		>
+			<SearchPageContent />
+		</Suspense>
 	);
 }
