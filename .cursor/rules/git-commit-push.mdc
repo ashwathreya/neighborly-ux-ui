@@ -1,0 +1,14 @@
+---
+description: After making code or config changes, commit and push to the remote.
+alwaysApply: true
+---
+
+# Git workflow
+
+After completing a logical set of edits (feature, fix, or task):
+
+1. Run `git status` and stage only the files that belong to the change.
+2. Commit with a clear, conventional message (what changed and why).
+3. Push the current branch to `origin` (e.g. `git push origin <branch>`).
+
+Do not leave fixes uncommitted at the end of a session unless the user explicitly asks to hold commits.
