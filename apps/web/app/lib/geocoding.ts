@@ -187,3 +187,139 @@ export async function geocodeLocationForMap(
 	const data = (await response.json()) as Array<{ lat: string; lon: string; address?: NominatimAddress }>;
 	return pickFirstUS(data);
 }
+
+/** One row in the location autocomplete dropdown */
+export type PlaceSuggestion = {
+	placeId: string;
+	/** e.g. "Harrison, NJ" */
+	primaryLabel: string;
+	/** e.g. "Hudson County" */
+	secondaryLabel?: string;
+	/** Value written into the location field */
+	value: string;
+	lat: number;
+	lng: number;
+};
+
+type NominatimHit = {
+	place_id: number;
+	lat: string;
+	lon: string;
+	class: string;
+	type: string;
+	name?: string;
+	display_name: string;
+	address?: NominatimAddress;
+	importance?: number;
+};
+
+function stateAbbrevFromAddress(address: NominatimAddress): string {
+	const iso = address['ISO3166-2-lvl4'];
+	if (typeof iso === 'string' && iso.startsWith('US-')) return iso.slice(3);
+	return pickState(address);
+}
+
+/** Human-facing city/town name from a Nominatim hit */
+function pickPlaceTitle(hit: NominatimHit): string {
+	const a = hit.address || {};
+	if (a.city) return a.city;
+	if (a.town) return a.town.replace(/^Town\/Village of\s+/i, '').trim();
+	if (a.village) return a.village;
+	if (a.hamlet) return a.hamlet;
+	if (hit.name) return hit.name.replace(/^Town\/Village of\s+/i, '').trim();
+	return pickCity(a);
+}
+
+/**
+ * US-only place suggestions for autocomplete (disambiguates Harrison, NJ vs Harrison, NY, etc.).
+ * Skips bare "… County" results when the user typed a single word without "county".
+ */
+export async function searchUSPlaceSuggestions(
+	query: string,
+	signal?: AbortSignal
+): Promise<PlaceSuggestion[]> {
+	const trimmed = query.trim();
+	if (trimmed.length < 2) return [];
+
+	// ZIP: one clear row using the same geocoder as the map
+	if (isUSZipInput(trimmed)) {
+		const g = await geocodeLocationForMap(trimmed, signal);
+		if (!g) return [];
+		const zipVal = normalizeUSZip5(trimmed) ?? trimmed;
+		return [
+			{
+				placeId: `zip-${zipVal}`,
+				primaryLabel: g.displayLabel,
+				secondaryLabel: 'ZIP code (United States)',
+				value: trimmed.toUpperCase().includes('-') ? trimmed : zipVal,
+				lat: g.lat,
+				lng: g.lng,
+			},
+		];
+	}
+
+	const queryMentionsCounty = /\bcounty\b/i.test(trimmed);
+	const isShortSingleWord = trimmed.split(/\s+/).length === 1;
+
+	const params = new URLSearchParams({
+		format: 'json',
+		q: trimmed,
+		countrycodes: 'us',
+		addressdetails: '1',
+		limit: '20',
+		dedupe: '1',
+	});
+	const response = await fetch(`${NOMINATIM}?${params}`, {
+		headers: DEFAULT_HEADERS,
+		signal,
+	});
+	if (!response.ok) return [];
+	const data = (await response.json()) as NominatimHit[];
+
+	const out: PlaceSuggestion[] = [];
+	const seen = new Set<string>();
+
+	for (const hit of data) {
+		const address = hit.address || {};
+		if (!isUSResult(address)) continue;
+		const lat = parseFloat(hit.lat);
+		const lng = parseFloat(hit.lon);
+		if (Number.isNaN(lat) || Number.isNaN(lng)) continue;
+		if (!isPlausibleUSMapCoordinates(lat, lng)) continue;
+
+		const nm = hit.name || '';
+		if (
+			!queryMentionsCounty &&
+			isShortSingleWord &&
+			/\bCounty$/i.test(nm) &&
+			hit.class === 'boundary' &&
+			hit.address?.county &&
+			!hit.address?.city &&
+			!hit.address?.town
+		) {
+			continue;
+		}
+
+		const title = pickPlaceTitle(hit);
+		const stateAbbr = stateAbbrevFromAddress(address);
+		if (!title || !stateAbbr) continue;
+
+		const primaryLabel = `${title}, ${stateAbbr}`;
+		const dedupeKey = primaryLabel.toLowerCase();
+		if (seen.has(dedupeKey)) continue;
+		seen.add(dedupeKey);
+
+		const secondaryLabel = address.county || undefined;
+
+		out.push({
+			placeId: String(hit.place_id),
+			primaryLabel,
+			secondaryLabel,
+			value: primaryLabel,
+			lat,
+			lng,
+		});
+	}
+
+	return out.slice(0, 12);
+}

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
 import { PROVIDERS, filterProviders, type Provider } from '../data/providers';
 import { geocodeLocationForMap } from '../lib/geocoding';
+import { LocationAutocomplete } from '../components/LocationAutocomplete';
 import dynamic from 'next/dynamic';
 
 // Dynamically import Leaflet components to avoid SSR issues
@@ -766,6 +767,46 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 							>
 								Clear All
 							</button>
+						</div>
+
+						{/* Location — US autocomplete lists same-named cities with state (e.g. Harrison, NJ vs Harrison, NY) */}
+						<div style={{ marginBottom: '24px', position: 'relative', zIndex: 20 }}>
+							<label style={{ display: 'block', fontSize: '14px', fontWeight: 600, color: '#374151', marginBottom: '8px' }}>
+								Location
+							</label>
+							<LocationAutocomplete
+								value={searchQuery.location}
+								onChange={(loc) => {
+									setSearchQuery((prev) => ({ ...prev, location: loc }));
+									if (typeof window !== 'undefined') {
+										const params = new URLSearchParams(window.location.search);
+										const t = loc.trim();
+										if (t) params.set('location', t);
+										else params.delete('location');
+										const qs = params.toString();
+										window.history.replaceState(
+											null,
+											'',
+											`${window.location.pathname}${qs ? `?${qs}` : ''}`
+										);
+									}
+								}}
+								placeholder="City, state, or ZIP — pick from list"
+								aria-label="Search location"
+								inputStyle={{
+									width: '100%',
+									padding: '10px 14px',
+									border: '2px solid #e5e7eb',
+									borderRadius: '10px',
+									fontSize: '14px',
+									boxSizing: 'border-box',
+									background: 'white',
+									color: '#111827',
+								}}
+							/>
+							<p style={{ margin: '6px 0 0', fontSize: '11px', color: '#6b7280' }}>
+								Type a city name and choose your state from the suggestions.
+							</p>
 						</div>
 
 						{/* Smart Keywords */}

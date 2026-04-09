@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
+import { LocationAutocomplete } from './LocationAutocomplete';
 
 interface EnhancedSearchFormProps {
 	onCategoryClick?: (category: { name: string; serviceType: string; keyword: string }) => void;
@@ -255,20 +256,21 @@ export function EnhancedSearchForm({ onCategoryClick, onQuickFilterChange }: Enh
 						/>
 					</div>
 
-					{/* Location Input */}
+					{/* Location Input — US autocomplete (disambiguates same-named cities by state) */}
 					<div
 						style={{
 							flex: '1',
-							minWidth: '180px',
-							position: 'relative'
+							minWidth: '200px',
+							position: 'relative',
+							zIndex: 5,
 						}}
 					>
-						<input
-							type="text"
-							placeholder="City or ZIP"
+						<LocationAutocomplete
 							value={location}
-							onChange={(e) => setLocation(e.target.value)}
-							style={{
+							onChange={setLocation}
+							placeholder="City, state, or ZIP"
+							aria-label="Location"
+							inputStyle={{
 								width: '100%',
 								padding: '16px 18px',
 								border: '2px solid rgba(255,255,255,0.3)',
@@ -279,18 +281,8 @@ export function EnhancedSearchForm({ onCategoryClick, onQuickFilterChange }: Enh
 								background: 'rgba(255,255,255,0.98)',
 								color: '#111827',
 								backdropFilter: 'blur(10px)',
-								boxShadow: '0 4px 12px rgba(0,0,0,0.1)'
+								boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
 							}}
-							onFocus={(e) => {
-								e.currentTarget.style.borderColor = 'rgba(99, 102, 241, 0.5)';
-								e.currentTarget.style.outline = 'none';
-								e.currentTarget.style.boxShadow = '0 6px 20px rgba(99, 102, 241, 0.2)';
-							}}
-							onBlur={(e) => {
-								e.currentTarget.style.borderColor = 'rgba(255,255,255,0.3)';
-								e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-							}}
-							aria-label="Location"
 						/>
 					</div>
 
