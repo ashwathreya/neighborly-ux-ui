@@ -325,6 +325,9 @@ function SearchPageContent() {
 		return Math.round(R * c * 10) / 10; // Round to 1 decimal
 	};
 
+	const isFiniteDistance = (d: number | undefined): d is number =>
+		d !== undefined && Number.isFinite(d);
+
 	// Filter providers using mock data
 	useEffect(() => {
 		setIsLoading(true);
@@ -390,9 +393,11 @@ function SearchPageContent() {
 						const angleRad = (angle * Math.PI) / 180;
 						
 						// Convert distance from miles to degrees
-						// 1 degree latitude ≈ 69 miles, longitude varies by latitude
+						// 1 degree latitude ≈ 69 miles, longitude varies by latitude (avoid cos→0 blowups)
 						const latOffset = distanceMiles / 69;
-						const lngOffset = distanceMiles / (69 * Math.cos(userLocation.lat * Math.PI / 180));
+						const latRad = (userLocation.lat * Math.PI) / 180;
+						const lngDen = 69 * Math.max(Math.abs(Math.cos(latRad)), 1e-8);
+						const lngOffset = distanceMiles / lngDen;
 						
 						// Calculate coordinates in a circle around user location
 						const coords = {
@@ -408,8 +413,14 @@ function SearchPageContent() {
 							coords.lng
 						);
 						
-						searchResult.coordinates = coords;
-						searchResult.distance = distance;
+						if (
+							Number.isFinite(coords.lat) &&
+							Number.isFinite(coords.lng) &&
+							isFiniteDistance(distance)
+						) {
+							searchResult.coordinates = coords;
+							searchResult.distance = distance;
+						}
 						
 						// Update location string based on user's zip code area
 						if (userLocationName) {
@@ -439,15 +450,16 @@ function SearchPageContent() {
 					const activeRadius = mapRadius;
 					if (!isNaN(activeRadius) && activeRadius < 100) {
 						filteredByRadius = resultsWithDistance.filter((result) => {
-							// Include providers with distance within radius, or if distance is not available (fallback)
-							return result.distance === undefined || result.distance <= activeRadius;
+							if (!isFiniteDistance(result.distance)) return true;
+							return result.distance <= activeRadius;
 						});
 					}
 				} else if (searchQuery.radius && searchQuery.radius !== '100') {
 					const radiusMiles = parseFloat(searchQuery.radius);
 					if (!isNaN(radiusMiles)) {
 						filteredByRadius = resultsWithDistance.filter((result) => {
-							return result.distance === undefined || result.distance <= radiusMiles;
+							if (!isFiniteDistance(result.distance)) return true;
+							return result.distance <= radiusMiles;
 						});
 					}
 				}
@@ -555,22 +567,26 @@ function SearchPageContent() {
 		if (sortBy === 'rating') return parseFloat(b.rating) - parseFloat(a.rating);
 		if (sortBy === 'distance') {
 			// Sort by distance (nearest first), fallback to rating if distance not available
-			if (a.distance !== undefined && b.distance !== undefined) {
+			if (isFiniteDistance(a.distance) && isFiniteDistance(b.distance)) {
 				return a.distance - b.distance;
 			}
-			if (a.distance !== undefined) return -1;
-			if (b.distance !== undefined) return 1;
+			if (isFiniteDistance(a.distance)) return -1;
+			if (isFiniteDistance(b.distance)) return 1;
 			return parseFloat(b.rating) - parseFloat(a.rating);
 		}
 		if (sortBy === 'price-low') return a.price - b.price;
 		if (sortBy === 'price-high') return b.price - a.price;
 		if (sortBy === 'reviews') return b.reviews - a.reviews;
 		// Recommended: sort by distance if zip code entered, otherwise by rating
-		if (userLocation && a.distance !== undefined && b.distance !== undefined) {
+		if (userLocation && isFiniteDistance(a.distance) && isFiniteDistance(b.distance)) {
 			return a.distance - b.distance; // Closest first
 		}
 		return parseFloat(b.rating) - parseFloat(a.rating); // Highest rated first
 	});
+
+	const sortedFiniteDistances = sortedResults
+		.map((r) => r.distance)
+		.filter((d): d is number => isFiniteDistance(d));
 
 	// Get all unique specialties for filter
 	const allSpecialties = Array.from(new Set(results.flatMap(r => r.specialties)));
@@ -1448,7 +1464,8 @@ function SearchPageContent() {
 										max="100"
 										value={mapRadius}
 										onChange={(e) => {
-											setMapRadius(parseInt(e.target.value));
+											const v = parseInt(e.target.value, 10);
+											setMapRadius(Number.isFinite(v) ? Math.max(1, Math.min(100, v)) : 50);
 											// Reset manual zoom flag when radius changes so auto-zoom takes over
 											setUserHasZoomed(false);
 										}}
@@ -1690,11 +1707,12 @@ function SearchPageContent() {
 											{mapRadius === 100 ? 'Any' : mapRadius} {mapRadius !== 100 && 'mi'}
 										</div>
 										<div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-											{sortedResults.filter(r => r.distance !== undefined).length} providers within radius
+											{sortedFiniteDistances.length} providers within radius
 										</div>
-										{sortedResults.filter(r => r.distance !== undefined).length > 0 && (
+										{sortedFiniteDistances.length > 0 && (
 											<div style={{ fontSize: '11px', color: '#6b7280' }}>
-												{Math.min(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0)).toFixed(1)} - {Math.max(...sortedResults.filter(r => r.distance !== undefined).map(r => r.distance || 0)).toFixed(1)} mi range
+												{Math.min(...sortedFiniteDistances).toFixed(1)} -{' '}
+												{Math.max(...sortedFiniteDistances).toFixed(1)} mi range
 											</div>
 										)}
 									</div>
