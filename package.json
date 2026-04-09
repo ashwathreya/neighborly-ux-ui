@@ -13,7 +13,7 @@
   },
   "devDependencies": {
     "concurrently": "^9.0.1",
-    "puppeteer": "^24.32.0"
+    "puppeteer": "^24.33.1"
   },
   "dependencies": {
     "sharp": "^0.34.5"

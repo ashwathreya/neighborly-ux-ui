@@ -433,3 +433,6 @@ export function EnhancedSearchForm({ onCategoryClick, onQuickFilterChange }: Enh
 
 
 
+
+
+

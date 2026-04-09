@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
 import { PROVIDERS, filterProviders, type Provider } from '../data/providers';
+import { geocodeLocationForMap } from '../lib/geocoding';
 import dynamic from 'next/dynamic';
 
 // Dynamically import Leaflet components to avoid SSR issues
@@ -88,7 +89,12 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 	});
 
 	const [userLocation, setUserLocation] = useState<{ lat: number; lng: number } | null>(null);
-	const [userLocationName, setUserLocationName] = useState<{ city: string; state: string } | null>(null);
+	const [userLocationName, setUserLocationName] = useState<{
+		city: string;
+		state: string;
+		county?: string;
+		displayLabel: string;
+	} | null>(null);
 	const [mapRadius, setMapRadius] = useState<number>(parseFloat(searchParams.radius as string) || 50);
 	const [mapZoom, setMapZoom] = useState<number>(1);
 	const [userHasZoomed, setUserHasZoomed] = useState<boolean>(false); // Track if user manually zoomed
@@ -221,45 +227,43 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		img.src = imageUrl;
 	}, [searchQuery.serviceType]);
 
-	// Get user location from zip code
+	// Resolve location (US ZIP or city/region) via Nominatim with US bias — avoids ambiguous bare numbers (e.g. 10001 → wrong country)
 	useEffect(() => {
-		const geocodeZipCode = async (zipCode: string) => {
-			if (!zipCode || zipCode.length < 5) return;
-			
+		const controller = new AbortController();
+
+		const run = async () => {
+			const raw = searchQuery.location?.trim() ?? '';
+			if (!raw || raw.length < 5) {
+				setUserLocation(null);
+				setUserLocationName(null);
+				return;
+			}
+
 			try {
-				// Using a free geocoding service (Nominatim)
-				const response = await fetch(
-					`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(zipCode)}&limit=1&addressdetails=1`,
-					{
-						headers: {
-							'User-Agent': 'Neighborly-App'
-						}
-					}
-				);
-				const data = await response.json();
-				if (data && data.length > 0) {
-					const result = data[0];
-					setUserLocation({
-						lat: parseFloat(result.lat),
-						lng: parseFloat(result.lon)
-					});
-					// Extract city and state from address
-					const address = result.address || {};
-					const city = address.city || address.town || address.village || address.municipality || 'City';
-					const state = address.state || address.region || 'State';
-					setUserLocationName({ city, state });
+				const result = await geocodeLocationForMap(raw, controller.signal);
+				if (controller.signal.aborted) return;
+				if (!result) {
+					setUserLocation(null);
+					setUserLocationName(null);
+					return;
 				}
+				setUserLocation({ lat: result.lat, lng: result.lng });
+				setUserLocationName({
+					city: result.city,
+					state: result.state,
+					county: result.county,
+					displayLabel: result.displayLabel,
+				});
 			} catch (error) {
+				if ((error as Error).name === 'AbortError') return;
 				console.error('Geocoding error:', error);
+				setUserLocation(null);
+				setUserLocationName(null);
 			}
 		};
 
-		if (searchQuery.location) {
-			geocodeZipCode(searchQuery.location);
-		} else {
-			setUserLocation(null);
-			setUserLocationName(null);
-		}
+		void run();
+		return () => controller.abort();
 	}, [searchQuery.location]);
 
 	// Sync mapRadius with searchQuery.radius when it changes from URL
@@ -386,10 +390,12 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 						if (userLocationName) {
 							// Generate nearby location names (mock nearby cities/towns)
 							const nearbyNames = [
+								userLocationName.displayLabel,
 								`${userLocationName.city}, ${userLocationName.state}`,
 								`Near ${userLocationName.city}`,
-								`${userLocationName.city} Area`,
-								`${userLocationName.state}`
+								userLocationName.county
+									? `${userLocationName.city}, ${userLocationName.state} (${userLocationName.county})`
+									: `${userLocationName.city} Area`,
 							];
 							searchResult.location = nearbyNames[providerIdNum % nearbyNames.length];
 						}
@@ -1273,7 +1279,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 						>
 								<div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
 									<h3 style={{ fontSize: '20px', fontWeight: 700, color: '#111827' }}>
-										📍 Interactive Map - {userLocationName ? `${userLocationName.city}, ${userLocationName.state}` : searchQuery.location}
+										📍 Interactive Map - {userLocationName?.displayLabel ?? searchQuery.location}
 									</h3>
 									{/* Zoom Controls */}
 									<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -1411,7 +1417,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 											providers={sortedResults}
 											mapRadius={mapRadius}
 											mapZoom={mapZoom}
-											searchQueryLocation={searchQuery.location}
+											searchQueryLocation={userLocationName?.displayLabel ?? searchQuery.location}
 											onProviderClick={(provider) => {
 												setSelectedProvider(provider);
 												setIsModalOpen(true);

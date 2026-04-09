@@ -37,7 +37,7 @@ interface SearchResult {
 
 interface LeafletMapProps {
 	userLocation: { lat: number; lng: number } | null;
-	userLocationName: { city: string; state: string } | null;
+	userLocationName: { city: string; state: string; county?: string; displayLabel?: string } | null;
 	providers: SearchResult[];
 	mapRadius: number;
 	mapZoom: number;

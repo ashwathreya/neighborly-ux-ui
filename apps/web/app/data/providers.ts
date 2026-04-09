@@ -43,6 +43,10 @@ const generatePortfolioImages = (providerId: string, specialties: string[]): str
 		'handyman': [200, 201, 202, 203, 204, 205], // Tools, construction
 		'repair': [200, 201, 202, 203, 204, 205],
 		'fix': [200, 201, 202, 203, 204, 205],
+		'painting': [200, 201, 202, 203, 204, 205],
+		'paint': [200, 201, 202, 203, 204, 205],
+		'wall': [200, 201, 202, 203, 204, 205],
+		'improvement': [200, 201, 202, 203, 204, 205],
 		'tutor': [400, 401, 402, 403, 404, 405], // Education, books
 		'teaching': [400, 401, 402, 403, 404, 405],
 		'education': [400, 401, 402, 403, 404, 405],
@@ -234,6 +238,8 @@ const handymanSpecialties = [
 	['TV mounting', 'Shelving', 'Cabinet installation'],
 	['Furniture assembly', 'IKEA assembly', 'Flat pack'],
 	['Painting', 'Wall repair', 'Drywall'],
+	['Wall painting', 'Interior painting', 'Ceiling painting', 'Home improvement'],
+	['Exterior painting', 'Pressure washing', 'Deck staining', 'Home improvement'],
 	['Electrical work', 'Light fixture installation'],
 	['Plumbing repairs', 'Leak fixes', 'Fixture installation'],
 	['Flooring', 'Tile work', 'Hardwood installation']
@@ -425,9 +431,11 @@ function generateProviders(): Provider[] {
 		const name = `${firstName} ${lastName.charAt(0)}.`;
 		const platform = cleaningPlatforms[i % cleaningPlatforms.length];
 		const platformData = platforms.find(p => p.name === platform)!;
-		
+		const providerId = String(idCounter++);
+		const providerSpecialties = cleaningSpecialties[i % cleaningSpecialties.length];
+
 		providers.push({
-			id: String(idCounter++),
+			id: providerId,
 			name,
 			platform,
 			platformName: platformData.displayName,
@@ -441,7 +449,7 @@ function generateProviders(): Provider[] {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return loc.name;
 			})(),
-			specialties: cleaningSpecialties[i % cleaningSpecialties.length],
+			specialties: providerSpecialties,
 			coordinates: (() => {
 				const loc = locations[Math.floor(Math.random() * locations.length)];
 				return {
@@ -548,6 +556,33 @@ function generateProviders(): Provider[] {
 
 export const PROVIDERS: Provider[] = generateProviders();
 
+/** Substrings that indicate home services / handyman-style work (used when serviceType is handyman). */
+const HANDYMAN_SKILL_MARKERS = [
+	'handyman', 'repair', 'fix', 'paint', 'plumb', 'electr', 'carpentr', 'drywall',
+	'furniture', 'assembl', 'mount', 'shelv', 'cabinet', 'flooring', 'tile',
+	'hvac', 'install', 'improvement', 'contractor', 'maintenance', 'renovat',
+	'trim', 'molding', 'deck', 'staining', 'ikea', 'flat pack', 'leak', 'fixture',
+	'hardwood', 'exterior', 'interior', 'ceiling', 'wall', 'home repair', 'home improvement'
+];
+
+function providerMatchesSearchKeyword(
+	provider: Provider,
+	keywordLower: string,
+	isZipCode: boolean
+): boolean {
+	const parts: string[] = [
+		provider.name.toLowerCase(),
+		...provider.specialties.map((s) => s.toLowerCase()),
+	];
+	if (!isZipCode) parts.push(provider.location.toLowerCase());
+	if (provider.bio) parts.push(provider.bio.toLowerCase());
+	const haystack = parts.join(' ');
+	if (haystack.includes(keywordLower)) return true;
+	const tokens = keywordLower.split(/\s+/).filter((t) => t.length >= 2);
+	if (tokens.length <= 1) return false;
+	return tokens.every((t) => haystack.includes(t));
+}
+
 // Helper function to filter providers based on search criteria
 export function filterProviders(
 	providers: Provider[],
@@ -574,7 +609,8 @@ export function filterProviders(
 					specLower.includes(keyword) || keyword.includes(specLower) ||
 					// Also check common service type mappings
 					(serviceTypeLower.includes('pet') && (specLower.includes('pet') || specLower.includes('dog') || specLower.includes('cat'))) ||
-					(serviceTypeLower.includes('handyman') && (specLower.includes('handyman') || specLower.includes('repair') || specLower.includes('fix'))) ||
+					(serviceTypeLower.includes('handyman') &&
+						HANDYMAN_SKILL_MARKERS.some((m) => specLower.includes(m))) ||
 					(serviceTypeLower.includes('tutor') && (specLower.includes('tutor') || specLower.includes('teaching'))) ||
 					(serviceTypeLower.includes('clean') && specLower.includes('clean')) ||
 					(serviceTypeLower.includes('move') && specLower.includes('move')) ||
@@ -620,12 +656,7 @@ export function filterProviders(
 		// Only filter if keyword is provided and not empty
 		if (filters.searchKeyword && filters.searchKeyword.trim().length > 0) {
 			const keywordLower = filters.searchKeyword.toLowerCase().trim();
-			const matchesKeyword =
-				provider.name.toLowerCase().includes(keywordLower) ||
-				(!isZipCode && provider.location.toLowerCase().includes(keywordLower)) || // Only match location if not zip code
-				provider.specialties.some((spec) => spec.toLowerCase().includes(keywordLower)) ||
-				provider.bio?.toLowerCase().includes(keywordLower);
-			if (!matchesKeyword) return false;
+			if (!providerMatchesSearchKeyword(provider, keywordLower, isZipCode)) return false;
 		}
 
 		// Specialties filter
