@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import Link from 'next/link';
 import { ProviderDetailModal } from '../components/ProviderDetailModal';
 import { PROVIDERS, filterProviders, type Provider } from '../data/providers';
 import { geocodeLocationForMap } from '../lib/geocoding';
 import { LocationAutocomplete } from '../components/LocationAutocomplete';
 import dynamic from 'next/dynamic';
+import type { LeafletMapControls } from '../components/LeafletMap';
 
 // Dynamically import Leaflet components to avoid SSR issues
 const LeafletMap = dynamic(() => import('../components/LeafletMap').then(mod => ({ default: mod.LeafletMap })), { 
@@ -97,12 +98,26 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 		displayLabel: string;
 	} | null>(null);
 	const [mapRadius, setMapRadius] = useState<number>(parseFloat(searchParams.radius as string) || 50);
-	const [mapZoom, setMapZoom] = useState<number>(1);
-	const [userHasZoomed, setUserHasZoomed] = useState<boolean>(false); // Track if user manually zoomed
+	/** Actual Leaflet zoom level (updated from map); used for header display */
+	const [mapLeafletZoom, setMapLeafletZoom] = useState<number>(11);
+	const [userHasZoomed, setUserHasZoomed] = useState<boolean>(false); // When true, skip auto fit-to-radius
+	const mapControlsRef = useRef<LeafletMapControls | null>(null);
 	/** When geocoding succeeds, equals `searchQuery.location` trim — used so we only skip city-string matching for the current resolved query */
 	const [geocodedLocationQuery, setGeocodedLocationQuery] = useState<string | null>(null);
 	const searchLocationRef = useRef(searchQuery.location);
 	searchLocationRef.current = searchQuery.location;
+
+	const onMapLeafletZoomChange = useCallback((z: number) => {
+		setMapLeafletZoom(z);
+	}, []);
+
+	const onMapControlsReady = useCallback((api: LeafletMapControls) => {
+		mapControlsRef.current = api;
+	}, []);
+
+	const onLeafletUserInteraction = useCallback(() => {
+		setUserHasZoomed(true);
+	}, []);
 
 	// Map keywords to service types with improved matching
 	const getServiceTypeFromKeyword = (keyword: string): string | null => {
@@ -295,23 +310,6 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 			}
 		}
 	}, [searchQuery.radius]);
-
-	// Auto-zoom based on mapRadius
-	// Calculate zoom level to fit the radius nicely in the map viewport
-	useEffect(() => {
-		if (userLocation && !userHasZoomed) {
-			// Calculate optimal zoom level based on radius
-			// For smaller radius, zoom in more; for larger radius, zoom out
-			// Viewport is 800x400 pixels, radius circle should take ~70% of the smaller dimension (280px)
-			// Base scale: 1 mile ≈ 12 pixels at zoom 1
-			// We want radius * zoom * baseScale ≈ 280
-			// So: zoom ≈ 280 / (radius * baseScale)
-			const baseScale = 12;
-			const targetPixels = 280; // Target radius circle size in pixels
-			const calculatedZoom = Math.max(0.3, Math.min(3, targetPixels / (mapRadius * baseScale)));
-			setMapZoom(calculatedZoom);
-		}
-	}, [mapRadius, userLocation, userHasZoomed]);
 
 	// Calculate distance between two coordinates (Haversine formula)
 	const calculateDistance = (lat1: number, lng1: number, lat2: number, lng2: number): number => {
@@ -1349,9 +1347,10 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 									{/* Zoom Controls */}
 									<div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
 										<button
+											type="button"
 											onClick={() => {
-												setMapZoom(Math.max(0.3, mapZoom - 0.2));
 												setUserHasZoomed(true);
+												mapControlsRef.current?.zoomOut();
 											}}
 											style={{
 												padding: '8px 12px',
@@ -1366,13 +1365,14 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										>
 											−
 										</button>
-										<span style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', minWidth: '60px', textAlign: 'center' }}>
-											{Math.round(mapZoom * 100)}%
+										<span style={{ fontSize: '14px', fontWeight: 600, color: '#6b7280', minWidth: '72px', textAlign: 'center' }}>
+											zoom {mapLeafletZoom}
 										</span>
 										<button
+											type="button"
 											onClick={() => {
-												setMapZoom(Math.min(3, mapZoom + 0.2));
 												setUserHasZoomed(true);
+												mapControlsRef.current?.zoomIn();
 											}}
 											style={{
 												padding: '8px 12px',
@@ -1389,9 +1389,10 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										</button>
 										{userHasZoomed && (
 											<button
+												type="button"
 												onClick={() => {
 													setUserHasZoomed(false);
-													// Auto-zoom will recalculate on next render
+													mapControlsRef.current?.fitSearchRadius();
 												}}
 												style={{
 													padding: '6px 12px',
@@ -1480,8 +1481,11 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 											userLocation={userLocation}
 											userLocationName={userLocationName}
 											providers={sortedResults}
-											mapRadius={mapRadius}
-											mapZoom={mapZoom}
+											mapRadiusMiles={mapRadius}
+											skipAutoFit={userHasZoomed}
+											onUserMapInteraction={onLeafletUserInteraction}
+											onZoomLevelChange={onMapLeafletZoomChange}
+											onMapControlsReady={onMapControlsReady}
 											searchQueryLocation={userLocationName?.displayLabel ?? searchQuery.location}
 											onProviderClick={(provider) => {
 												setSelectedProvider(provider);
@@ -1657,7 +1661,7 @@ export default function SearchPage({ searchParams }: { searchParams: Record<stri
 										<span>Providers ({sortedResults.length} shown)</span>
 									</div>
 									<div style={{ fontSize: '11px', color: '#6b7280', marginTop: '4px' }}>
-										Distances from {searchQuery.location} • Zoom: {Math.round(mapZoom * 100)}%
+										Distances from {searchQuery.location} • Zoom: {mapLeafletZoom}
 									</div>
 								</div>
 								

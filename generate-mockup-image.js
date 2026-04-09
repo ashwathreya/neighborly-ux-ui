@@ -26,7 +26,7 @@ async function generateMockupImage() {
         });
 
         // Wait a bit for any animations or rendering to complete
-        await page.waitForTimeout(1000);
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
         // Take screenshot
         const outputPath = path.resolve(__dirname, 'neighborly-product-mockup.png');

@@ -94,3 +94,4 @@ If you use Figma, Adobe XD, or similar:
 ✅ Clean, professional design matching your actual Neighborly UI
 
 The mockup is ready to use for your case study hero slide! 🎉
+

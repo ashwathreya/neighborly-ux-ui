@@ -324,33 +324,36 @@
         }
 
         .mobile-hero {
-            padding: 40px 20px;
+            padding: 32px 20px 24px;
             text-align: center;
         }
 
         .mobile-headline {
-            font-size: 32px;
+            font-size: 28px;
             font-weight: 800;
             color: #111827;
             line-height: 1.2;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
             letter-spacing: -0.01em;
+            padding: 0 4px;
         }
 
         .mobile-subtext {
-            font-size: 16px;
+            font-size: 15px;
             color: #6b7280;
-            margin-bottom: 32px;
+            margin-bottom: 24px;
             line-height: 1.5;
+            padding: 0 4px;
         }
 
         .mobile-categories {
             display: flex;
             gap: 8px;
             overflow-x: auto;
-            padding: 0 20px 20px;
-            margin-bottom: 24px;
+            padding: 0 20px 16px;
+            margin-bottom: 20px;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
         }
 
         .mobile-categories::-webkit-scrollbar {
@@ -358,11 +361,11 @@
         }
 
         .mobile-category-pill {
-            padding: 10px 18px;
+            padding: 8px 16px;
             background: white;
             border: 2px solid #e5e7eb;
-            border-radius: 24px;
-            font-size: 14px;
+            border-radius: 20px;
+            font-size: 13px;
             font-weight: 600;
             color: #374151;
             white-space: nowrap;
@@ -371,17 +374,17 @@
 
         .mobile-search-container {
             background: white;
-            padding: 24px 20px;
+            padding: 20px;
             margin: 0 20px;
             border-radius: 16px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-            margin-bottom: 24px;
+            margin-bottom: 20px;
         }
 
         .mobile-search-form {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             margin-bottom: 16px;
         }
 
@@ -390,6 +393,7 @@
             border: 2px solid #e5e7eb;
             border-radius: 12px;
             font-size: 15px;
+            width: 100%;
         }
 
         .mobile-search-button {
@@ -406,10 +410,13 @@
 
         .mobile-filter-chips {
             display: flex;
-            gap: 6px;
+            gap: 8px;
             overflow-x: auto;
-            padding: 0 20px 20px;
+            padding: 12px 20px 20px;
+            margin: 0 0 0 0;
             -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            background: transparent;
         }
 
         .mobile-filter-chips::-webkit-scrollbar {
@@ -417,10 +424,10 @@
         }
 
         .mobile-filter-chip {
-            padding: 6px 14px;
+            padding: 8px 14px;
             background: #f3f4f6;
             border: none;
-            border-radius: 18px;
+            border-radius: 20px;
             font-size: 12px;
             font-weight: 600;
             color: #374151;
@@ -537,14 +544,16 @@
                                 <input type="text" class="mobile-search-input" placeholder="Within 10 mi">
                                 <button class="mobile-search-button">Search</button>
                             </div>
-                            <div class="mobile-filter-chips">
-                                <button class="mobile-filter-chip">Top rated (4.8+)</button>
-                                <button class="mobile-filter-chip">Budget-friendly</button>
-                                <button class="mobile-filter-chip">Available this week</button>
-                                <button class="mobile-filter-chip">Verified only</button>
-                                <button class="mobile-filter-chip">On Rover</button>
-                                <button class="mobile-filter-chip">On TaskRabbit</button>
-                            </div>
+                        </div>
+                        
+                        <!-- Mobile Filter Chips - Separate scrolling container -->
+                        <div class="mobile-filter-chips">
+                            <button class="mobile-filter-chip">Top rated (4.8+)</button>
+                            <button class="mobile-filter-chip">Budget-friendly</button>
+                            <button class="mobile-filter-chip">Available this week</button>
+                            <button class="mobile-filter-chip">Verified only</button>
+                            <button class="mobile-filter-chip">On Rover</button>
+                            <button class="mobile-filter-chip">On TaskRabbit</button>
                         </div>
                     </div>
                 </div>
