@@ -62,6 +62,29 @@ interface LeafletMapProps {
 
 const METERS_PER_MILE = 1609.34;
 
+function isValidLngLat(lat: number, lng: number): boolean {
+	return (
+		Number.isFinite(lat) &&
+		Number.isFinite(lng) &&
+		Math.abs(lat) <= 90 &&
+		Math.abs(lng) <= 180
+	);
+}
+
+function safeRadiusMiles(mi: number): number {
+	if (!Number.isFinite(mi) || mi <= 0) return 50;
+	return Math.max(1, Math.min(100, mi));
+}
+
+/** Escape text for HTML popups (Leaflet bindPopup). */
+function escapeHtml(s: string): string {
+	return s
+		.replace(/&/g, '&amp;')
+		.replace(/</g, '&lt;')
+		.replace(/>/g, '&gt;')
+		.replace(/"/g, '&quot;');
+}
+
 export function LeafletMap({
 	userLocation,
 	userLocationName: _userLocationName,
@@ -86,23 +109,32 @@ export function LeafletMap({
 	const fitSearchRadius = useCallback(() => {
 		const map = mapRef.current;
 		const loc = userLocation;
-		if (!map || !loc) return;
+		if (!map || !loc || !isValidLngLat(loc.lat, loc.lng)) return;
+		const mi = safeRadiusMiles(mapRadiusMiles);
 		programmaticMoveRef.current = true;
-		const rMeters = Math.max(1, mapRadiusMiles) * METERS_PER_MILE;
-		const circle = L.circle([loc.lat, loc.lng], { radius: rMeters });
-		map.fitBounds(circle.getBounds(), {
-			padding: [40, 48],
-			maxZoom: 14,
-			animate: true,
-		});
+		try {
+			const rMeters = mi * METERS_PER_MILE;
+			const circle = L.circle([loc.lat, loc.lng], { radius: rMeters });
+			const b = circle.getBounds();
+			if (!b.isValid()) return;
+			map.fitBounds(b, {
+				padding: [40, 48],
+				maxZoom: 14,
+				animate: true,
+			});
+		} catch (e) {
+			console.warn('Leaflet fitBounds failed:', e);
+			programmaticMoveRef.current = false;
+			return;
+		}
 		let finished = false;
 		let fallback: number | undefined;
 		const finish = () => {
 			if (finished) return;
 			finished = true;
 			if (fallback !== undefined) window.clearTimeout(fallback);
-			onZoomLevelChange?.(map.getZoom());
-			// Keep programmatic true briefly so late zoomend events do not count as user interaction
+			const z = map.getZoom();
+			if (Number.isFinite(z)) onZoomLevelChange?.(z);
 			window.setTimeout(() => {
 				programmaticMoveRef.current = false;
 			}, 350);
@@ -114,18 +146,24 @@ export function LeafletMap({
 	// Create map once per container + location; do not tear down when radius changes
 	useEffect(() => {
 		const el = mapContainerRef.current;
-		if (!el || !userLocation) return;
+		if (!el || !userLocation || !isValidLngLat(userLocation.lat, userLocation.lng)) return;
 		if (mapRef.current) return;
 
-		const map = L.map(el, {
-			center: [userLocation.lat, userLocation.lng],
-			zoom: 11,
-			zoomControl: false,
-			scrollWheelZoom: true,
-			doubleClickZoom: true,
-			boxZoom: true,
-			keyboard: true,
-		});
+		let map: L.Map;
+		try {
+			map = L.map(el, {
+				center: [userLocation.lat, userLocation.lng],
+				zoom: 11,
+				zoomControl: false,
+				scrollWheelZoom: true,
+				doubleClickZoom: true,
+				boxZoom: true,
+				keyboard: true,
+			});
+		} catch (e) {
+			console.warn('Leaflet map init failed:', e);
+			return;
+		}
 		mapRef.current = map;
 
 		L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
@@ -138,7 +176,7 @@ export function LeafletMap({
 
 		const onZoomEnd = () => {
 			const z = map.getZoom();
-			onZoomLevelChange?.(z);
+			if (Number.isFinite(z)) onZoomLevelChange?.(z);
 			if (!programmaticMoveRef.current) {
 				onUserMapInteraction();
 			}
@@ -153,7 +191,11 @@ export function LeafletMap({
 		map.on('dragend', onDragEnd);
 
 		return () => {
-			map.remove();
+			try {
+				map.remove();
+			} catch {
+				/* ignore */
+			}
 			mapRef.current = null;
 		};
 		// eslint-disable-next-line react-hooks/exhaustive-deps -- single map instance; center comes from fitBounds
@@ -180,7 +222,7 @@ export function LeafletMap({
 
 	// Add/update user location marker
 	useEffect(() => {
-		if (!mapRef.current || !userLocation) return;
+		if (!mapRef.current || !userLocation || !isValidLngLat(userLocation.lat, userLocation.lng)) return;
 
 		if (userMarkerRef.current) {
 			mapRef.current.removeLayer(userMarkerRef.current);
@@ -214,9 +256,10 @@ export function LeafletMap({
 			iconAnchor: [10, 10],
 		});
 
+		const popupLoc = escapeHtml(searchQueryLocation || 'Search area');
 		userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], { icon: userIcon })
 			.addTo(mapRef.current)
-			.bindPopup(`<strong>Your Location</strong><br>${searchQueryLocation}`);
+			.bindPopup(`<strong>Your Location</strong><br>${popupLoc}`);
 
 		return () => {
 			if (userMarkerRef.current && mapRef.current) {
@@ -228,7 +271,7 @@ export function LeafletMap({
 	// Search radius circle — all radii 1–100 mi (including “100”)
 	useEffect(() => {
 		const map = mapRef.current;
-		if (!map || !userLocation) return;
+		if (!map || !userLocation || !isValidLngLat(userLocation.lat, userLocation.lng)) return;
 
 		if (circleRef.current) {
 			map.removeLayer(circleRef.current);
@@ -239,7 +282,8 @@ export function LeafletMap({
 			radiusLabelRef.current = null;
 		}
 
-		const radiusMeters = Math.max(1, mapRadiusMiles) * METERS_PER_MILE;
+		const mi = safeRadiusMiles(mapRadiusMiles);
+		const radiusMeters = mi * METERS_PER_MILE;
 
 		circleRef.current = L.circle([userLocation.lat, userLocation.lng], {
 			radius: radiusMeters,
@@ -262,7 +306,7 @@ export function LeafletMap({
 					font-weight: 700;
 					white-space: nowrap;
 					box-shadow: 0 2px 8px rgba(99,102,241,0.35);
-				">${mapRadiusMiles} mi search</div>`,
+				">${mi} mi search</div>`,
 				iconSize: [1, 1],
 				iconAnchor: [0, 0],
 			}),
@@ -280,7 +324,7 @@ export function LeafletMap({
 
 	// Provider markers
 	useEffect(() => {
-		if (!mapRef.current || !userLocation) return;
+		if (!mapRef.current || !userLocation || !isValidLngLat(userLocation.lat, userLocation.lng)) return;
 
 		markersRef.current.forEach((marker) => {
 			if (mapRef.current) {
@@ -290,7 +334,8 @@ export function LeafletMap({
 		markersRef.current = [];
 
 		providers.forEach((provider) => {
-			if (!provider.coordinates) return;
+			const c = provider.coordinates;
+			if (!c || !isValidLngLat(c.lat, c.lng)) return;
 
 			const providerIcon = L.divIcon({
 				className: 'custom-provider-marker',
@@ -309,21 +354,25 @@ export function LeafletMap({
 				iconAnchor: [6, 6],
 			});
 
-			const marker = L.marker([provider.coordinates.lat, provider.coordinates.lng], { icon: providerIcon })
-				.addTo(mapRef.current!);
+			const marker = L.marker([c.lat, c.lng], { icon: providerIcon }).addTo(mapRef.current!);
 
 			marker.on('click', () => {
 				onProviderClick(provider);
 			});
 
 			marker.on('mouseover', () => {
-				const container = mapContainerRef.current;
-				if (container && mapRef.current && provider.coordinates) {
-					const point = mapRef.current.latLngToContainerPoint(provider.coordinates);
+				const m = mapRef.current;
+				if (!m || !c) return;
+				try {
+					const ll = L.latLng(c.lat, c.lng);
+					const point = m.latLngToContainerPoint(ll);
+					if (!Number.isFinite(point.x) || !Number.isFinite(point.y)) return;
 					onProviderHover(provider, {
 						x: point.x,
 						y: point.y - 10,
 					});
+				} catch {
+					onProviderHover(null, null);
 				}
 			});
 

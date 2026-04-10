@@ -282,6 +282,12 @@ export function SearchPageClient({ initialSearchParams }: SearchPageClientProps)
 						setGeocodedLocationQuery(null);
 						return;
 					}
+					if (!Number.isFinite(result.lat) || !Number.isFinite(result.lng)) {
+						setUserLocation(null);
+						setUserLocationName(null);
+						setGeocodedLocationQuery(null);
+						return;
+					}
 					setUserLocation({ lat: result.lat, lng: result.lng });
 					setUserLocationName({
 						city: result.city,
@@ -1960,7 +1966,9 @@ export function SearchPageClient({ initialSearchParams }: SearchPageClientProps)
 									</div>
 
 									{/* Mini Map */}
-									{result.coordinates && (
+									{result.coordinates &&
+										Number.isFinite(result.coordinates.lat) &&
+										Number.isFinite(result.coordinates.lng) && (
 										<div style={{ marginBottom: '12px' }}>
 											<div
 												style={{
@@ -1977,6 +1985,7 @@ export function SearchPageClient({ initialSearchParams }: SearchPageClientProps)
 											>
 												{process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY ? (
 													<iframe
+														title={`Map for ${result.name}`}
 														width="100%"
 														height="100%"
 														style={{ border: 0 }}
